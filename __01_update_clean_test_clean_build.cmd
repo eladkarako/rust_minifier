@@ -1,11 +1,12 @@
-@echo off
+::@echo off
 
+::------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 :: updates cargo once (for Cargo.lock)
 :: updates local rust components in Windows and WSL.
 :: clean and test on Windows for native Windows (x86_64), and WSL for native Linux (x86_64).
 :: **** if a test fails the result of cargo test effects the shell's exit code, which will quit before building
 :: it builds on Windows for Windows, and on WSL for Android NDK, Linux, embedded and powerpc. (Android recently moved toolchain from Windows to WSL, keeping just windows-msvc on Windows).
-
+::------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
 chcp 65001 1>nul 2>nul
