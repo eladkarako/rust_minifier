@@ -1,4 +1,4 @@
-::@echo off
+@echo off
 chcp 65001 1>nul 2>nul
 set "LANG=en_US.UTF-8"
 set "LANGUAGE=en_US"
@@ -19,7 +19,4 @@ set "TZ=UTC"
 
 pushd "%~sdp0"
 
-cargo test --no-fail-fast --future-incompat-report --message-format human --verbose --color always --timings
-
-pause
-pause
+cargo test --no-fail-fast --future-incompat-report --message-format human --verbose --color never --timings >".\__02_test_result.txt"  2>&1
