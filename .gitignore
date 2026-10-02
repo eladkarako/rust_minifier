@@ -8,6 +8,6 @@
 
 /target/
 
-minified__*
+*_minified_*
 
 __02_test_result.txt
