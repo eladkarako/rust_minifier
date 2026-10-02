@@ -12,7 +12,7 @@ use crate::minifier::minify;
 
 /// Process all files with Tokio parallelism.
 pub async fn process_all(args: &Args) -> Result<()> {
-    let max_threads = (num_cpus::get().saturating_sub(1)).max(1);
+    let max_threads = num_cpus::get().saturating_mul(2).max(1);
     let semaphore =
         Arc::new(tokio::sync::Semaphore::new(max_threads));
 
