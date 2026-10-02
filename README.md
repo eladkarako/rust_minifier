@@ -28,9 +28,8 @@ note: `STDIN` is stored in file with `_raw` suffix, then minified to file with `
 
 #### parallelism
 
-the program handles any amount of files you give it itself,  
-there is no need for batch files or complex loops,  
-the number of CPUs minus one, is the number of parallel jobs.  
+since this is program is I/O heavy more then CPU heavy,  
+the maximum amount of threads is actually double the amount of CPUs (minimum 1).
 
 there is a small notification (using `STDERR`) for finished jobs and how much time it took.  
 
@@ -46,7 +45,7 @@ binaries available for multiple OS and CPU architectures.
 - [x86_64-pc-windows-msvc.zip](https://github.com/eladkarako/rust_minifier/releases/latest/download/x86_64-pc-windows-msvc.zip)
 - [i686-pc-windows-msvc.zip](https://github.com/eladkarako/rust_minifier/releases/latest/download/i686-pc-windows-msvc.zip)
 
-<h3><img width="20" src="resources/logos/android.png" /> Android NDK <code>v30.0.14904198</code> minimum SDK </code>v21</code></h3>
+<h3><img width="20" src="resources/logos/android.png" /> Android NDK <code>v30.0.16248370</code> minimum SDK </code>v21</code></h3>
 
 - [aarch64-linux-android.zip](https://github.com/eladkarako/rust_minifier/releases/latest/download/aarch64-linux-android.zip)
 - [armv7-linux-androideabi.zip](https://github.com/eladkarako/rust_minifier/releases/latest/download/armv7-linux-androideabi.zip)
