@@ -27,9 +27,9 @@ num_cpus = "1.17.0"                                        # Query the number of
 proc-macro2 = "1.0.107"                                    # Procedural macro utilities and token manipulation
 quote = "1.0.47"                                           # Code generation for writing Rust tokens
 syn = { version = "3.0.6", features = ["full"] }           # Parse Rust syntax trees with full feature support
+tempfile = "3.27.0"                                        # Creating temporary files
 thiserror = "2.0.21"                                       # Derive custom error types with minimal boilerplate
 tokio = { version = "1.53.1", features = ["full"] }        # Async runtime with all features enabled
-
 
 [dev-dependencies]
 temp-dir = "0.2.0"                                         # Simple temporary directory with cleanup (Provides a TempDir struct).
