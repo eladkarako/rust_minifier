@@ -26,7 +26,10 @@ pub fn capture_metadata(path: &Path) -> Result<FileMetadata> {
 }
 
 /// Apply captured metadata to an output file.
-pub fn apply_metadata(path: &Path, meta: &FileMetadata) -> Result<()> {
+pub fn apply_metadata(
+    path: &Path,
+    meta: &FileMetadata,
+) -> Result<()> {
     let mtime = FileTime::from_unix_time(meta.modified as i64, 0);
     let atime = FileTime::from_unix_time(meta.accessed as i64, 0);
 

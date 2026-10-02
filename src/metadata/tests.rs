@@ -1,6 +1,5 @@
 use super::*;
 use std::fs;
-use std::path::Path;
 use temp_dir::TempDir;
 
 #[test]
@@ -32,4 +31,3 @@ fn test_apply_metadata() {
     assert_eq!(restored_meta.modified, original_meta.modified);
     assert_eq!(restored_meta.accessed, original_meta.accessed);
 }
-

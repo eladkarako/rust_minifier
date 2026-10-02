@@ -58,4 +58,3 @@ fn test_args_multiple_files() {
     };
     assert_eq!(args.files.len(), 3);
 }
-

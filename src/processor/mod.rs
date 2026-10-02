@@ -13,7 +13,8 @@ use crate::minifier::minify;
 /// Process all files with Tokio parallelism.
 pub async fn process_all(args: &Args) -> Result<()> {
     let max_threads = (num_cpus::get().saturating_sub(1)).max(1);
-    let semaphore = Arc::new(tokio::sync::Semaphore::new(max_threads));
+    let semaphore =
+        Arc::new(tokio::sync::Semaphore::new(max_threads));
 
     let stdout = Arc::new(Mutex::new(io::stdout()));
     let mut handles = vec![];
@@ -41,11 +42,16 @@ pub async fn process_all(args: &Args) -> Result<()> {
                 )
                     .await;
                 let elapsed = file_start.elapsed().as_millis();
-                eprintln!("[{}/{}] {} ... {}ms", idx + 1, args.files.len(), file, elapsed);
+                eprintln!(
+                    "[{}/{}] {} ... {}ms",
+                    idx + 1,
+                    args.files.len(),
+                    file,
+                    elapsed
+                );
                 result
             }
         });
-
 
         handles.push(handle);
     }
@@ -85,7 +91,7 @@ async fn process_single_file(
     let mut reader = BufReader::new(file);
     let mut buffer = Vec::new();
     reader.read_to_end(&mut buffer)?;
-    let source=String::from_utf8(buffer)?;
+    let source = String::from_utf8(buffer)?;
 
     // Capture metadata before modification
     let meta = capture_metadata(path)?;
@@ -123,15 +129,22 @@ async fn process_single_file(
 }
 
 /// Get deduplicated output file path.
-fn get_deduplicated_path(original: &Path, suffix: &str) -> Result<PathBuf> {
+fn get_deduplicated_path(
+    original: &Path,
+    suffix: &str,
+) -> Result<PathBuf> {
     let parent = original
         .parent()
         .ok_or_else(|| anyhow::anyhow!("No parent directory"))?;
     let stem = original
         .file_stem()
         .ok_or_else(|| anyhow::anyhow!("No file stem"))?;
-    
-    let mut output_path = parent.join(format!("{}{}_1.rs", stem.to_string_lossy(), suffix));
+
+    let mut output_path = parent.join(format!(
+        "{}{}_1.rs",
+        stem.to_string_lossy(),
+        suffix
+    ));
 
     let mut counter = 1;
     while output_path.exists() {
@@ -151,7 +164,9 @@ fn get_deduplicated_path(original: &Path, suffix: &str) -> Result<PathBuf> {
 pub async fn process_stdin(_args: &Args) -> Result<()> {
     // Check if stdin is a terminal
     if io::stdin().is_terminal() {
-        eprintln!("No files provided and stdin is a terminal. Use --help for usage.");
+        eprintln!(
+            "No files provided and stdin is a terminal. Use --help for usage."
+        );
         return Ok(());
     }
 
@@ -172,7 +187,6 @@ pub async fn process_stdin(_args: &Args) -> Result<()> {
 
     Ok(())
 }
-
 
 #[cfg(test)]
 #[path = "tests.rs"]

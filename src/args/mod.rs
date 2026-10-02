@@ -35,7 +35,6 @@ impl Args {
     }
 }
 
-
 #[cfg(test)]
 #[path = "tests.rs"]
 mod tests;

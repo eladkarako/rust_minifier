@@ -6,7 +6,8 @@ fn test_get_deduplicated_path_first_file() {
     let temp = TempDir::new().unwrap();
     let original = temp.path().join("test.rs");
 
-    let result = get_deduplicated_path(&original, "_minified").unwrap();
+    let result =
+        get_deduplicated_path(&original, "_minified").unwrap();
     let result_str = result.to_string_lossy();
 
     assert!(result_str.contains("test"));
@@ -20,9 +21,11 @@ fn test_get_deduplicated_path_collision() {
     let original = temp.path().join("test.rs");
 
     // Create first output file
-    std::fs::File::create(temp.path().join("test_minified_1.rs")).unwrap();
+    std::fs::File::create(temp.path().join("test_minified_1.rs"))
+        .unwrap();
 
-    let result = get_deduplicated_path(&original, "_minified").unwrap();
+    let result =
+        get_deduplicated_path(&original, "_minified").unwrap();
     let result_str = result.to_string_lossy();
 
     assert!(result_str.contains("_minified"));
@@ -48,5 +51,3 @@ async fn test_process_single_file_creates_output() {
 
     assert!(result.is_ok());
 }
-
-

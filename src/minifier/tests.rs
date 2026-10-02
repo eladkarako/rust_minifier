@@ -65,10 +65,10 @@ fn test_needs_space_between_no_space_required() {
 
 #[test]
 fn test_reconstruct_minimal_with_spaces() {
-    let tokens: proc_macro2::TokenStream = "let x = 5".parse().unwrap();
+    let tokens: proc_macro2::TokenStream =
+        "let x = 5".parse().unwrap();
     let result = reconstruct_minimal(tokens);
     assert!(result.contains("let"));
     assert!(result.contains("x"));
     assert!(result.contains("5"));
 }
-
