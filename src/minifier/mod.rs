@@ -27,90 +27,69 @@ pub fn minify(source: &str) -> Result<String> {
 
 /// Remove all comments, rustdocs (///, //!), and block comments (/** */, /*! */).
 /// Preserves string and raw string literals.
-fn remove_comments_and_rustdocs(source: &str) -> Result<String> {
-    let mut result = String::with_capacity(source.len());
-    let mut chars = source.chars().peekable();
-    let mut in_string = false;
-    let mut string_char = ' ';
-    let mut escape_next = false;
+fn remove_comments_and_rustdocs(source:&str)->Result<String>{
+    let mut result=String::with_capacity(source.len());
+    let mut chars=source.chars().peekable();
+    let mut in_string=false;
+    let mut string_char=' ';
+    let mut escape_next=false;
+    let mut raw_string_hashes=0;
 
-    while let Some(ch) = chars.next() {
-        // Handle escape sequences in strings
-        if in_string && escape_next {
+    while let Some(ch)=chars.next(){
+        if in_string&&escape_next{
             result.push(ch);
-            escape_next = false;
+            escape_next=false;
             continue;
         }
-
-        // Handle string boundaries
-        if in_string {
+        if in_string{
             result.push(ch);
-            if ch == '\\' {
-                escape_next = true;
-            } else if ch == string_char {
-                in_string = false;
-            }
-            continue;
-        }
-
-        // Detect string start
-        if (ch == '"' || ch == '\'') && !is_char_literal(&result) {
-            in_string = true;
-            string_char = ch;
-            result.push(ch);
-            continue;
-        }
-
-        // Detect raw strings (r#"..." or r"...")
-        if ch == 'r' && chars.peek() == Some(&'#') || chars.peek() == Some(&'"') {
-            result.push(ch);
-            result.push(*chars.peek().unwrap());
-            chars.next();
-            if ch == 'r' && *chars.peek().unwrap_or(&' ') == '#' {
-                // Skip hashes and find opening quote
-                while chars.peek() == Some(&'#') {
-                    result.push(chars.next().unwrap());
-                }
-            }
-            // Now inside raw string
-            if let Some(&'"') = chars.peek() {
-                result.push(chars.next().unwrap());
-                in_string = true;
-                string_char = '"';
-            }
-            continue;
-        }
-
-        // Detect comments
-        if ch == '/' {
-            if chars.peek() == Some(&'/') {
-                // Line comment (// or /// or //!)
-                chars.next(); // consume second /
-                while chars.peek().is_some() && chars.peek() != Some(&'\n') {
-                    chars.next(); // skip entire line
-                }
-                // Preserve newline for structure
-                if let Some('\n') = chars.peek() {
-                    result.push('\n');
-                    chars.next();
-                }
-                continue;
-            } else if chars.peek() == Some(&'*') {
-                // Block comment (/* or /** or /*!)
-                chars.next(); // consume *
-                while let Some(curr) = chars.next() {
-                    if curr == '*' && chars.peek() == Some(&'/') {
-                        chars.next(); // consume /
-                        break;
+            if ch=='\\'{
+                escape_next=true;
+            }else if ch==string_char{
+                if raw_string_hashes>0{
+                    let mut hash_count=0;
+                    while chars.peek()==Some(&'#')&&hash_count<raw_string_hashes{
+                        result.push(chars.next().unwrap());
+                        hash_count+=1;
                     }
+                    if hash_count==raw_string_hashes{
+                        in_string=false;
+                        raw_string_hashes=0;
+                    }
+                }else{
+                    in_string=false;
                 }
-                continue;
             }
+            continue;
+        }
+        if ch=='r'&&matches!(chars.peek(),Some(&'"')|Some(&'#')){
+            result.push(ch);
+            // Check what comes next
+            if chars.peek()==Some(&'"'){
+                // r"..."
+                result.push(chars.next().unwrap());
+                in_string=true;
+                string_char='"';
+                raw_string_hashes=0;
+            }else if chars.peek()==Some(&'#'){
+                // r#"..."# or r##"..."## etc.
+                let mut hash_count=0;
+                while chars.peek()==Some(&'#'){
+                    result.push(chars.next().unwrap());
+                    hash_count+=1;
+                }
+                if chars.peek()==Some(&'"'){
+                    result.push(chars.next().unwrap());
+                    in_string=true;
+                    string_char='"';
+                    raw_string_hashes=hash_count;
+                }
+            }
+            continue;
         }
 
         result.push(ch);
     }
-
     Ok(result)
 }
 
@@ -145,16 +124,6 @@ fn needs_space_between(prev: &str, next: &str) -> bool {
 
     // Space needed if both look like identifiers or delimiters
     prev_is_ident && next_is_ident
-}
-
-/// Check if the context suggests this is a character literal (e.g., 'a') not a string.
-fn is_char_literal(context: &str) -> bool {
-    let trimmed = context.trim_end();
-    if trimmed.is_empty() {
-        return false;
-    }
-    let last_char = trimmed.chars().last().unwrap_or(' ');
-    matches!(last_char, '(' | ',' | '=' | ':' | '{' | '[' | ' ')
 }
 
 #[cfg(test)]
