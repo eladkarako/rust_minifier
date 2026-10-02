@@ -229,8 +229,8 @@ fn needs_space_between(
         // Literal to Group = no space
         (Literal(..), Group(..)) => false,
 
-        // Group to Ident/Literal = need space (closing bracket to ident)
-        (Group(..), Ident(..)) | (Group(..), Literal(..)) => true,
+        // Group to anything = NO space
+        (Group(..), _) => false,
 
         // Never add space after punctuation — Rust's lexer handles it
         (Punct(..), _) => false,
