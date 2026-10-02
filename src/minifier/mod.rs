@@ -1,5 +1,6 @@
 use anyhow::Result;
 use proc_macro2::TokenStream;
+use proc_macro2::TokenTree;
 
 /// Minify Rust source code.
 ///
@@ -156,47 +157,91 @@ fn remove_comments_and_rustdocs(source: &str) -> Result<String> {
 /// Reconstruct minified code from token stream with minimal spacing.
 fn reconstruct_minimal(tokens: TokenStream) -> String {
     let mut result = String::new();
-    let mut prev_token = String::new();
+    let mut prev_token: Option<TokenTree> = None;
 
-    for token in tokens {
-        let token_str = token.to_string();
-
-        // Add space between tokens only if necessary
-        if !prev_token.is_empty()
-            && needs_space_between(&prev_token, &token_str)
-        {
-            result.push(' ');
+    for token in tokens.into_iter() {
+        // Add space between tokens if needed
+        if let Some(ref prev) = prev_token {
+            if needs_space_between(prev, &token) {
+                result.push(' ');
+            }
         }
 
-        result.push_str(&token_str);
-        prev_token = token_str;
+        // Handle each token type separately to avoid proc_macro2's internal spacing
+        match &token {
+            TokenTree::Punct(p) => {
+                result.push(p.as_char());
+            }
+            TokenTree::Group(g) => {
+                let delim_open = match g.delimiter() {
+                    proc_macro2::Delimiter::Parenthesis => '(',
+                    proc_macro2::Delimiter::Brace => '{',
+                    proc_macro2::Delimiter::Bracket => '[',
+                    proc_macro2::Delimiter::None => '\0',
+                };
+                let delim_close = match g.delimiter() {
+                    proc_macro2::Delimiter::Parenthesis => ')',
+                    proc_macro2::Delimiter::Brace => '}',
+                    proc_macro2::Delimiter::Bracket => ']',
+                    proc_macro2::Delimiter::None => '\0',
+                };
+
+                if delim_open != '\0' {
+                    result.push(delim_open);
+                }
+                // Recursively reconstruct the inner stream
+                result.push_str(&reconstruct_minimal(g.stream()));
+                if delim_close != '\0' {
+                    result.push(delim_close);
+                }
+            }
+            _ => {
+                // For Ident and Literal, to_string() is safe
+                result.push_str(&token.to_string());
+            }
+        }
+
+        prev_token = Some(token);
     }
 
     result
 }
 
-/// Determine if whitespace is required between two consecutive tokens.
+/// Determine if a space is required between two tokens.
 fn needs_space_between(
-    prev: &str,
-    next: &str,
+    prev_token: &TokenTree,
+    next_token: &TokenTree,
 ) -> bool {
-    let prev_last = prev.chars().last().unwrap_or(' ');
-    let next_first = next.chars().next().unwrap_or(' ');
+    use proc_macro2::TokenTree::*;
 
-    // No space needed if either token is a bracket or punctuation (with exceptions)
-    let prev_is_ident = prev_last.is_alphanumeric()
-        || prev_last == '_'
-        || prev_last == ')'
-        || prev_last == ']'
-        || prev_last == '}';
-    let next_is_ident = next_first.is_alphanumeric()
-        || next_first == '_'
-        || next_first == '('
-        || next_first == '['
-        || next_first == '{';
+    match (prev_token, next_token) {
+        // Ident to Ident = need space
+        (Ident(..), Ident(..)) => true,
+        // Ident to Literal = need space
+        (Ident(..), Literal(..)) => true,
+        // Ident to opening paren/bracket/brace = no space (ident(...))
+        (Ident(..), Group(..)) => false,
 
-    // Space needed if both look like identifiers or delimiters
-    prev_is_ident && next_is_ident
+        // Literal to Ident = need space
+        (Literal(..), Ident(..)) => true,
+        // Literal to Literal = need space
+        (Literal(..), Literal(..)) => true,
+        // Literal to Group = no space
+        (Literal(..), Group(..)) => false,
+
+        // Closing punct ) ] } or semicolon to Ident/Literal = need space
+        (Punct(p), Ident(..)) | (Punct(p), Literal(..)) => {
+            matches!(p.as_char(), ')' | ']' | '}' | ';')
+        }
+
+        // Group to Ident/Literal = need space (closing bracket to ident)
+        (Group(..), Ident(..)) | (Group(..), Literal(..)) => true,
+
+        // Ident/Literal to opening punct = no space usually, but...
+        // Closing group to punct: generally no space unless it's important
+        // Default: no space
+        _ => false,
+    }
 }
 
 #[cfg(test)]
