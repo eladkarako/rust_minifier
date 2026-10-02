@@ -140,21 +140,28 @@ fn get_deduplicated_path(
         .file_stem()
         .ok_or_else(|| anyhow::anyhow!("No file stem"))?;
 
+    // First, try the path without a counter
     let mut output_path = parent.join(format!(
-        "{}{}_1.rs",
+        "{}{}.rs",
         stem.to_string_lossy(),
         suffix
     ));
 
-    let mut counter = 1;
-    while output_path.exists() {
-        output_path = parent.join(format!(
-            "{}{}_{}.rs",
-            stem.to_string_lossy(),
-            suffix,
-            counter
-        ));
-        counter += 1;
+    // If it exists, add counters: _1, _2, _3, etc.
+    if output_path.exists() {
+        let mut counter = 1;
+        loop {
+            output_path = parent.join(format!(
+                "{}{}_{}.rs",
+                stem.to_string_lossy(),
+                suffix,
+                counter
+            ));
+            if !output_path.exists() {
+                break;
+            }
+            counter += 1;
+        }
     }
 
     Ok(output_path)
