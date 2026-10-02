@@ -85,7 +85,7 @@ async fn process_single_file(
     let mut reader = BufReader::new(file);
     let mut buffer = Vec::new();
     reader.read_to_end(&mut buffer)?;
-    let source = String::new();
+    let source=String::from_utf8(buffer)?;
 
     // Capture metadata before modification
     let meta = capture_metadata(path)?;
@@ -130,8 +130,8 @@ fn get_deduplicated_path(original: &Path, suffix: &str) -> Result<PathBuf> {
     let stem = original
         .file_stem()
         .ok_or_else(|| anyhow::anyhow!("No file stem"))?;
-
-    let mut output_path = parent.join(format!("{}{}_{}.rs", stem.to_string_lossy(), suffix, parent.display()));
+    
+    let mut output_path = parent.join(format!("{}{}_1.rs", stem.to_string_lossy(), suffix));
 
     let mut counter = 1;
     while output_path.exists() {
