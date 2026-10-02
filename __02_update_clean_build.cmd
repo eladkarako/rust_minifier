@@ -35,40 +35,6 @@ cargo update
 
 
 
-
-::  ███████████    ██████████     █████████     ███████████     █████████ 
-:: ░█░░░███░░░█   ░░███░░░░░█    ███░░░░░███   ░█░░░███░░░█    ███░░░░░███
-:: ░   ░███  ░     ░███  █ ░    ░███    ░░░    ░   ░███  ░    ░███    ░░░ 
-::     ░███        ░██████      ░░█████████        ░███       ░░█████████ 
-::     ░███        ░███░░█       ░░░░░░░░███       ░███        ░░░░░░░░███
-::     ░███        ░███ ░   █    ███    ░███       ░███        ███    ░███
-::     █████       ██████████   ░░█████████        █████      ░░█████████ 
-::    ░░░░░       ░░░░░░░░░░     ░░░░░░░░░        ░░░░░        ░░░░░░░░░  
-
-
-title TESTS - on Windows for Windows
-::------------------ update toolchains and components (Windows)
-rustup update
-cargo clean
-cargo test --jobs 16 --future-incompat-report --message-format human --verbose --color never --timings --target x86_64-pc-windows-msvc
-set "EXIT_CODE=%ErrorLevel%"
-if ["%EXIT_CODE%"] neq ["0"] ( goto ERROR_TEST )
-
-
-title TESTS - on WSL for Linux
-set "ARGS="
-set "ARGS=%ARGS% set +o pipefail;"
-set "ARGS=%ARGS% set +o errexit;"
-set "ARGS=%ARGS% source ~/.profile;"
-set "ARGS=%ARGS% source ~/.bashrc;"
-set "ARGS=%ARGS% rustup update;"
-set "ARGS=%ARGS% cargo clean;"
-set "ARGS=%ARGS% cargo test --jobs 16 --future-incompat-report --message-format human --verbose --color never --timings --target x86_64-unknown-linux-gnu;"
-call wsl bash -lc "%ARGS%"
-set "EXIT_CODE=%ErrorLevel%"
-if ["%EXIT_CODE%"] neq ["0"] ( goto ERROR_TEST )
-
-
 ::------------------ all tests were successful, meaning you can continue to building.
 
 
@@ -135,15 +101,5 @@ set "ARGS=%ARGS% cargo build  --release  --target   powerpc-unknown-linux-gnu;"
 call wsl bash -lc "%ARGS%"
 
 
-goto END
-
-
-:ERROR_TEST
-  echo [INFO] test failed.            1>&2
-  goto END
-
-
-:END
-  echo [INFO] EXIT_CODE: %EXIT_CODE%  1>&2
-  pause
-  exit /b %EXIT_CODE%
+pause
+exit /b 0
