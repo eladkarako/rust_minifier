@@ -5,6 +5,8 @@ and/or Rust content from a pipeline (initial `STDIN`),
 write it to files, one big file, or all to `STDOUT`.  
 all processing is done in parallel.
 
+it works on rust tests, as well as rust code.
+
 #### use cases
 
 - removing old/faulty/invalid comments and rustdoc after code change.
