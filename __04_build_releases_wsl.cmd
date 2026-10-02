@@ -33,15 +33,18 @@ set "ARGS=%ARGS% source ~/.profile;"
 set "ARGS=%ARGS% source ~/.bashrc;"
 ::------------------ build commands (apt-get dependencies were previously installed in my local WSL)
 set "ARGS=%ARGS% rustup update;"
-set "ARGS=%ARGS% rustup target add   x86_64-unknown-linux-gnu   aarch64-unknown-linux-gnu   x86_64-unknown-linux-musl   aarch64-unknown-linux-musl  powerpc-unknown-linux-gnu  powerpc64-unknown-linux-gnu  powerpc64le-unknown-linux-gnu;"
-set "ARGS=%ARGS% cargo build  --release  --target   x86_64-unknown-linux-gnu;"
+set "ARGS=%ARGS% rustup target add   aarch64-unknown-linux-gnu  aarch64-unknown-linux-musl  armv7-unknown-linux-gnueabihf  armv7-unknown-linux-musleabihf  powerpc64-unknown-linux-gnu  powerpc64le-unknown-linux-gnu  powerpc-unknown-linux-gnu  x86_64-unknown-linux-gnu  x86_64-unknown-linux-musl;"
 set "ARGS=%ARGS% cargo build  --release  --target   aarch64-unknown-linux-gnu;"
-set "ARGS=%ARGS% cargo build  --release  --target   x86_64-unknown-linux-musl;"
 set "ARGS=%ARGS% cargo build  --release  --target   aarch64-unknown-linux-musl;"
-set "ARGS=%ARGS% cargo build  --release  --target   powerpc-unknown-linux-gnu;"
+set "ARGS=%ARGS% cargo build  --release  --target   armv7-unknown-linux-gnueabihf;"
+set "ARGS=%ARGS% cargo build  --release  --target   armv7-unknown-linux-musleabihf;"
 set "ARGS=%ARGS% cargo build  --release  --target   powerpc64-unknown-linux-gnu;"
 set "ARGS=%ARGS% cargo build  --release  --target   powerpc64le-unknown-linux-gnu;"
+set "ARGS=%ARGS% cargo build  --release  --target   powerpc-unknown-linux-gnu;"
+set "ARGS=%ARGS% cargo build  --release  --target   x86_64-unknown-linux-gnu;"
+set "ARGS=%ARGS% cargo build  --release  --target   x86_64-unknown-linux-musl;"
 
 call wsl bash -lc "%ARGS%"
 
 timeout /t 5
+

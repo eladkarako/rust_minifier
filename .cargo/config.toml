@@ -2,8 +2,10 @@
 incremental = false
 
 
+
 [target.i686-pc-windows-msvc]
 rustflags = ['-C', 'link-arg=/LARGEADDRESSAWARE']
+
 
 
 #-------------------------------------- use Android Studio to download sdk and ndk to you desktop computer and point to it.
@@ -24,6 +26,7 @@ linker = 'C:/Users/Elad/AppData/Local/Android/Sdk/ndk/30.0.14904198/toolchains/l
 ar = 'C:/Users/Elad/AppData/Local/Android/Sdk/ndk/30.0.14904198/toolchains/llvm/prebuilt/windows-x86_64/bin/llvm-ar.exe'
 
 
+
 [env]
 CC_x86_64_linux_android = { value = 'C:/Users/Elad/AppData/Local/Android/Sdk/ndk/30.0.14904198/toolchains/llvm/prebuilt/windows-x86_64/bin/x86_64-linux-android21-clang.cmd', force = true }
 CC_i686_linux_android = { value = 'C:/Users/Elad/AppData/Local/Android/Sdk/ndk/30.0.14904198/toolchains/llvm/prebuilt/windows-x86_64/bin/i686-linux-android21-clang.cmd', force = true }
@@ -39,25 +42,45 @@ AR_armv7_linux_androideabi = { value = 'C:/Users/Elad/AppData/Local/Android/Sdk/
 [target.aarch64-unknown-linux-gnu]
 linker = 'aarch64-linux-gnu-gcc'
 
+[target.x86_64-unknown-linux-gnu]
+linker = "gcc"
 
-#-------------------------------------- download and unpack from https://musl.cc/ to custom folder.
+[target.x86_64-unknown-linux-musl]
+linker = "musl-gcc"
+
+
+
+[target.armv7-unknown-linux-gnueabihf]
+linker = 'arm-linux-gnueabihf-gcc'
+
+[target.powerpc64-unknown-linux-gnu]
+linker = 'powerpc64-linux-gnu-gcc'
+
+[target.powerpc64le-unknown-linux-gnu]
+linker = 'powerpc64le-linux-gnu-gcc'
+
+[target.powerpc-unknown-linux-gnu]
+linker = 'powerpc-linux-gnu-gcc'
+
+
+
+#-------------------------------------- cd ~ && mkdir toolchains || cd toolchains && wget "https://github.com/cross-tools/musl-cross/releases/latest/download/aarch64-unknown-linux-musl.tar.xz" && tar -xJf aarch64-unknown-linux-musl.tar.xz && rm aarch64-unknown-linux-musl.tar.xz
+#-------------------------------------- note: older versions in https://musl.cc/ (adjust path from 'aarch64-linux-musl-cross' and 'aarch64-linux-musl-ar' and 'aarch64-linux-musl-gcc')
 [target.aarch64-unknown-linux-musl]
-linker = '/home/elad/toolchains/aarch64-linux-musl-cross/bin/aarch64-linux-musl-gcc'
+linker = '/home/elad/toolchains/aarch64-unknown-linux-musl/bin/aarch64-unknown-linux-musl-gcc'
 ar = '/home/elad/toolchains/aarch64-linux-musl-cross/bin/aarch64-linux-musl-ar'
 rustflags = [
     '-C', 'link-arg=-static',
 ]
 
 
-[target.powerpc-unknown-linux-gnu]
-linker = "powerpc-linux-gnu-gcc"
 
-[target.powerpc64-unknown-linux-gnu]
-linker = "powerpc64-linux-gnu-gcc"
-
-[target.powerpc64le-unknown-linux-gnu]
-linker = "powerpc64le-linux-gnu-gcc"
-
-
+#-------------------------------------- cd ~ && mkdir toolchains || cd toolchains && wget "https://github.com/cross-tools/musl-cross/releases/latest/download/armv7-unknown-linux-musleabihf.tar.xz" && tar -xJf armv7-unknown-linux-musleabihf.tar.xz && rm armv7-unknown-linux-musleabihf.tar.xz
+[target.armv7-unknown-linux-musleabihf]
+linker = '/home/elad/toolchains/armv7-unknown-linux-musleabihf/bin/armv7-unknown-linux-musleabihf-gcc'
+ar = '/home/elad/toolchains/armv7-unknown-linux-musleabihf/bin/armv7-unknown-linux-musleabihf-ar'
+rustflags = [
+    '-C', 'link-arg=-static',
+]
 
 
