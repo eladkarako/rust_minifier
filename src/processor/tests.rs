@@ -20,8 +20,8 @@ fn test_get_deduplicated_path_collision() {
     let temp = TempDir::new().unwrap();
     let original = temp.path().join("test.rs");
 
-    // Create first output file
-    std::fs::File::create(temp.path().join("test_minified_1.rs"))
+    // Create the base output file to force collision
+    std::fs::File::create(temp.path().join("test_minified.rs"))
         .unwrap();
 
     let result =
