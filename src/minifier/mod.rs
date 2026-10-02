@@ -1,6 +1,5 @@
 use anyhow::Result;
 use proc_macro2::TokenStream;
-use std::str::FromStr;
 
 /// Minify Rust source code.
 ///

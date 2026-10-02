@@ -23,9 +23,9 @@ pub async fn process_all(args: &Args) -> Result<()> {
     for (idx, file) in args.files.iter().enumerate() {
         let sem = semaphore.clone();
         let file = file.clone();
-        let suffix = args.suffix.clone();
-        let concat_output = args.concat_output.clone();
-        let concat_to_stdout = args.concat_to_stdout;
+        let _suffix = args.suffix.clone();
+        let _concat_output = args.concat_output.clone();
+        let _concat_to_stdout = args.concat_to_stdout;
         let stdout = stdout.clone();
         let handle = tokio::spawn({
             let args = args.clone();
@@ -85,7 +85,7 @@ async fn process_single_file(
     let mut reader = BufReader::new(file);
     let mut buffer = Vec::new();
     reader.read_to_end(&mut buffer)?;
-    let mut source = String::new();
+    let source = String::new();
 
     // Capture metadata before modification
     let meta = capture_metadata(path)?;
@@ -148,7 +148,7 @@ fn get_deduplicated_path(original: &Path, suffix: &str) -> Result<PathBuf> {
 }
 
 /// Process stdin.
-pub async fn process_stdin(args: &Args) -> Result<()> {
+pub async fn process_stdin(_args: &Args) -> Result<()> {
     // Check if stdin is a terminal
     if io::stdin().is_terminal() {
         eprintln!("No files provided and stdin is a terminal. Use --help for usage.");
@@ -157,7 +157,6 @@ pub async fn process_stdin(args: &Args) -> Result<()> {
 
     // Read from stdin with buffered reader
     let mut reader = BufReader::new(io::stdin().lock());
-    let mut source = String::new();
     let mut buffer = Vec::new();
     reader.read_to_end(&mut buffer)?;
     let source = String::from_utf8(buffer)?;
