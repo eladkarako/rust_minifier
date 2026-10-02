@@ -219,7 +219,7 @@ fn needs_space_between(
         (Ident(..), Ident(..)) => true,
         // Ident to Literal = need space
         (Ident(..), Literal(..)) => true,
-        // Ident to opening paren/bracket/brace = no space (ident(...))
+        // Ident to Group = no space (ident(...))
         (Ident(..), Group(..)) => false,
 
         // Literal to Ident = need space
@@ -229,16 +229,12 @@ fn needs_space_between(
         // Literal to Group = no space
         (Literal(..), Group(..)) => false,
 
-        // Closing punct ) ] } or semicolon to Ident/Literal = need space
-        (Punct(p), Ident(..)) | (Punct(p), Literal(..)) => {
-            matches!(p.as_char(), ')' | ']' | '}' | ';')
-        }
-
         // Group to Ident/Literal = need space (closing bracket to ident)
         (Group(..), Ident(..)) | (Group(..), Literal(..)) => true,
 
-        // Ident/Literal to opening punct = no space usually, but...
-        // Closing group to punct: generally no space unless it's important
+        // Never add space after punctuation — Rust's lexer handles it
+        (Punct(..), _) => false,
+
         // Default: no space
         _ => false,
     }
