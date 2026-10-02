@@ -27,22 +27,25 @@ pub async fn process_all(args: &Args) -> Result<()> {
         let concat_output = args.concat_output.clone();
         let concat_to_stdout = args.concat_to_stdout;
         let stdout = stdout.clone();
-
-        let handle = tokio::spawn(async move {
-            let _permit = sem.acquire().await.ok();
-            let file_start = std::time::Instant::now();
-            let result = process_single_file(
-                &file,
-                &suffix,
-                concat_output.as_deref(),
-                concat_to_stdout,
-                stdout,
-            )
-                .await;
-            let elapsed = file_start.elapsed().as_millis();
-            eprintln!("[{}/{}] {} ... {}ms", idx + 1, args.files.len(), file, elapsed);
-            result
+        let handle = tokio::spawn({
+            let args = args.clone();
+            async move {
+                let _permit = sem.acquire().await.ok();
+                let file_start = std::time::Instant::now();
+                let result = process_single_file(
+                    &file,
+                    &args.suffix,
+                    args.concat_output.as_deref(),
+                    args.concat_to_stdout,
+                    stdout,
+                )
+                    .await;
+                let elapsed = file_start.elapsed().as_millis();
+                eprintln!("[{}/{}] {} ... {}ms", idx + 1, args.files.len(), file, elapsed);
+                result
+            }
         });
+
 
         handles.push(handle);
     }
