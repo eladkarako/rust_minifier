@@ -15,7 +15,7 @@ pub struct Args {
     #[arg(value_name = "FILES")]
     pub files: Vec<String>,
 
-    /// Output suffix for minified files (default: _minified)
+    /// Output suffix for minified files
     #[arg(short, long, default_value = "_minified")]
     pub suffix: String,
 
@@ -23,9 +23,13 @@ pub struct Args {
     #[arg(long, value_name = "PATH")]
     pub concat_output: Option<String>,
 
-    /// Write to stdout instead of files as each thread finishes
-    #[arg(long)]
+    /// Write to stdout instead of files as each thread finishes [default: false]
+    #[arg(long, default_value = "false")]
     pub concat_to_stdout: bool,
+
+    /// file's path as a comment in the minified file's head [default: true]
+    #[arg(long, default_value = "true")]
+    pub include_file_path: bool,
 }
 
 impl Args {

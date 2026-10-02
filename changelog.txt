@@ -1,2 +1,5 @@
+26.10.3
++ added functionality --include-file-path true/false (default true) to add at the head of the minified content (file) the fully qualified path of the minified files. it helps when copying the content to somewhere else, since it tells about the folder tree structure.
+
 26.10.2
 + initial.

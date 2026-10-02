@@ -28,14 +28,16 @@ async fn test_process_single_file_minification_applied() {
         ".min",
         None,
         false,
+        true,
         stdout,
     )
         .await;
 
     let output_content = fs::read_to_string(&output_path).unwrap();
     // Output should not contain the comment
-    assert!(
-        !output_content.contains("This comment should be removed")
+    assert_eq!(
+        output_content.contains("This comment should be removed"),
+        false
     );
 }
 
@@ -52,6 +54,7 @@ async fn test_process_all_suffix_applied() {
         suffix: ".custom".to_string(),
         concat_output: None,
         concat_to_stdout: false,
+        include_file_path: true,
     };
 
     let result = process_all(&args).await;
@@ -101,6 +104,7 @@ async fn test_process_all_concat_contents() {
             concat_output.to_str().unwrap().to_string(),
         ),
         concat_to_stdout: false,
+        include_file_path: true,
     };
 
     let _ = process_all(&args).await;
@@ -124,6 +128,7 @@ async fn test_process_all_path_with_dots() {
         suffix: ".min".to_string(),
         concat_output: None,
         concat_to_stdout: false,
+        include_file_path: true,
     };
 
     let result = process_all(&args).await;
@@ -146,6 +151,7 @@ async fn test_process_single_file_string_literals() {
         ".min",
         None,
         false,
+        true,
         stdout,
     )
         .await;
@@ -170,6 +176,7 @@ async fn test_process_single_file_raw_strings() {
         ".min",
         None,
         false,
+        true,
         stdout,
     )
         .await;
@@ -199,6 +206,7 @@ fn test_foo() {}
         ".min",
         None,
         false,
+        true,
         stdout,
     )
         .await;
@@ -222,6 +230,7 @@ async fn test_process_single_file_with_lifetimes() {
         ".min",
         None,
         false,
+        true,
         stdout,
     )
         .await;
@@ -246,6 +255,7 @@ async fn test_process_single_file_with_where_clause() {
         ".min",
         None,
         false,
+        true,
         stdout,
     )
         .await;
@@ -269,6 +279,7 @@ async fn test_process_single_file_with_async() {
         ".min",
         None,
         false,
+        true,
         stdout,
     )
         .await;
@@ -292,6 +303,7 @@ async fn test_process_single_file_with_unsafe() {
         ".min",
         None,
         false,
+        true,
         stdout,
     )
         .await;
@@ -316,6 +328,7 @@ async fn test_process_single_file_with_const() {
         ".min",
         None,
         false,
+        true,
         stdout,
     )
         .await;
@@ -339,6 +352,7 @@ async fn test_process_single_file_with_modules() {
         ".min",
         None,
         false,
+        true,
         stdout,
     )
         .await;
@@ -362,6 +376,7 @@ async fn test_process_single_file_with_use() {
         ".min",
         None,
         false,
+        true,
         stdout,
     )
         .await;
@@ -384,6 +399,7 @@ async fn test_process_all_nested_directories() {
         suffix: ".min".to_string(),
         concat_output: None,
         concat_to_stdout: false,
+        include_file_path: true,
     };
 
     let result = process_all(&args).await;
@@ -410,6 +426,7 @@ fn add(a: i32, b: i32) -> i32 {
         ".min",
         None,
         false,
+        true,
         stdout,
     )
         .await;
@@ -439,6 +456,7 @@ async fn test_process_all_concurrent() {
         suffix: ".min".to_string(),
         concat_output: None,
         concat_to_stdout: false,
+        include_file_path: true,
     };
 
     let result = process_all(&args).await;
@@ -467,6 +485,7 @@ fn factorial(n: u32) -> u32 {
         suffix: ".min".to_string(),
         concat_output: None,
         concat_to_stdout: false,
+        include_file_path: true,
     };
 
     let _ = process_all(&args).await;
@@ -476,4 +495,67 @@ fn factorial(n: u32) -> u32 {
         assert!(!output.is_empty());
         assert!(output.contains("factorial"));
     }
+}
+
+/// Helper struct for testing file processing with path prefixes
+struct TestFileSetup {
+    _temp_dir: tempfile::TempDir,
+    canonical_path: String,
+}
+impl TestFileSetup {
+    /// Create a test file with sample Rust code
+    fn new(content: &str) -> std::io::Result<Self> {
+        let temp_dir = tempfile::TempDir::new()?;
+        let file_path = temp_dir.path().join("test.rs");
+
+        let mut file = fs::File::create(&file_path)?;
+        file.write_all(content.as_bytes())?;
+        file.flush()?;
+
+        let canonical_path = fs::canonicalize(&file_path)?
+            .to_string_lossy()
+            .to_string();
+
+        Ok(TestFileSetup {
+            _temp_dir: temp_dir, // Keep directory alive
+            canonical_path,
+        })
+    }
+
+    fn path_str(&self) -> &str {
+        // Extract path from canonical_path or store it separately
+        &self.canonical_path
+    }
+}
+
+///include_file_path true means a output content start with '// ' and end with 'test.rs', the file should actually exist.
+#[tokio::test]
+async fn test_include_file_path_true() {
+    let test_setup =
+        TestFileSetup::new("fn main() { println!(\"hello\"); }")
+            .expect("Failed to create temp file");
+
+    let output = Arc::new(Mutex::new(Vec::new()));
+
+    let result = process_single_file(
+        test_setup.path_str(),
+        "_minified",
+        None,
+        true,
+        true,
+        output.clone(),
+    )
+        .await;
+
+    assert!(result.is_ok(), "process_single_file should succeed");
+
+    let output_content =
+        String::from_utf8(output.lock().await.clone()).unwrap();
+
+    assert_eq!(output_content.starts_with("// "), true);
+    assert_eq!(output_content.contains("test.rs"), true);
+    assert_eq!(
+        std::path::Path::new(test_setup.path_str()).exists(),
+        true
+    );
 }

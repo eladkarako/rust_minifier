@@ -11,7 +11,7 @@ name = "rust_minifier"
 readme = "README.md"
 repository = "https://github.com/eladkarako/rust_minifier"
 rust-version = "1.93.0"
-version = "26.10.2"
+version = "26.10.3"
 
 [[bin]]
 name = "rust_minifier"

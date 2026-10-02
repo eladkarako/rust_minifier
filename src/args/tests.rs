@@ -8,12 +8,14 @@ fn test_args_struct_creation() {
         suffix: String::from("_minified"),
         concat_output: None,
         concat_to_stdout: false,
+        include_file_path: true,
     };
 
     assert_eq!(args.files.len(), 0);
     assert_eq!(args.suffix, "_minified");
-    assert!(args.concat_output.is_none());
-    assert!(!args.concat_to_stdout);
+    assert_eq!(args.concat_output.is_none(), true);
+    assert_eq!(args.concat_to_stdout, false);
+    assert_eq!(args.include_file_path, true);
 }
 
 /// Test Args with multiple files
@@ -28,6 +30,7 @@ fn test_args_with_multiple_files() {
         suffix: String::from("_minified"),
         concat_output: None,
         concat_to_stdout: false,
+        include_file_path: true,
     };
 
     assert_eq!(args.files.len(), 3);
@@ -44,6 +47,7 @@ fn test_args_with_custom_suffix() {
         suffix: String::from("_custom_suffix"),
         concat_output: None,
         concat_to_stdout: false,
+        include_file_path: true,
     };
 
     assert_eq!(args.suffix, "_custom_suffix");
@@ -60,14 +64,15 @@ fn test_args_with_concat_output() {
         suffix: String::from("_minified"),
         concat_output: Some(String::from("/output/concatenated.rs")),
         concat_to_stdout: false,
+        include_file_path: true,
     };
 
-    assert!(args.concat_output.is_some());
+    assert_eq!(args.concat_output.is_some(), true);
     assert_eq!(
         args.concat_output.as_ref().unwrap(),
         "/output/concatenated.rs"
     );
-    assert!(!args.concat_to_stdout);
+    assert_eq!(args.concat_to_stdout, false);
 }
 
 /// Test Args with concat_to_stdout enabled
@@ -78,10 +83,11 @@ fn test_args_with_concat_to_stdout() {
         suffix: String::from("_minified"),
         concat_output: None,
         concat_to_stdout: true,
+        include_file_path: true,
     };
 
-    assert!(!args.concat_output.is_some());
-    assert!(args.concat_to_stdout);
+    assert_eq!(args.concat_output.is_some(), false);
+    assert_eq!(args.concat_to_stdout, true);
 }
 
 /// Test that concat_output and concat_to_stdout are mutually exclusive in practice
@@ -93,11 +99,12 @@ fn test_args_concat_output_and_stdout_exclusive() {
         suffix: String::from("_minified"),
         concat_output: Some(String::from("/output/file.rs")),
         concat_to_stdout: true,
+        include_file_path: true,
     };
 
     // Both can technically be set, but only one should be used in practice
-    assert!(args.concat_output.is_some());
-    assert!(args.concat_to_stdout);
+    assert_eq!(args.concat_output.is_some(), true);
+    assert_eq!(args.concat_to_stdout, true);
 }
 
 /// Test Args with empty files but with suffix
@@ -108,9 +115,10 @@ fn test_args_empty_files_with_suffix() {
         suffix: String::from("_min"),
         concat_output: None,
         concat_to_stdout: false,
+        include_file_path: true,
     };
 
-    assert!(args.files.is_empty());
+    assert_eq!(args.files.is_empty(), true);
     assert_eq!(args.suffix, "_min");
 }
 
@@ -122,6 +130,7 @@ fn test_args_clone() {
         suffix: String::from("_minified"),
         concat_output: Some(String::from("output.rs")),
         concat_to_stdout: true,
+        include_file_path: true,
     };
 
     let args2 = args1.clone();
@@ -140,12 +149,13 @@ fn test_args_debug() {
         suffix: String::from("_minified"),
         concat_output: None,
         concat_to_stdout: false,
+        include_file_path: true,
     };
 
     let debug_str = format!("{:?}", args);
-    assert!(debug_str.contains("files"));
-    assert!(debug_str.contains("suffix"));
-    assert!(debug_str.contains("_minified"));
+    assert_eq!(debug_str.contains("files"), true);
+    assert_eq!(debug_str.contains("suffix"), true);
+    assert_eq!(debug_str.contains("_minified"), true);
 }
 
 /// Test suffix with special characters
@@ -156,6 +166,7 @@ fn test_args_suffix_with_special_chars() {
         suffix: String::from("_min-v1.0"),
         concat_output: None,
         concat_to_stdout: false,
+        include_file_path: true,
     };
 
     assert_eq!(args.suffix, "_min-v1.0");
@@ -171,6 +182,7 @@ fn test_args_concat_output_nested_path() {
             "/path/to/nested/output/file.rs",
         )),
         concat_to_stdout: false,
+        include_file_path: true,
     };
 
     assert_eq!(
@@ -192,6 +204,7 @@ fn test_args_with_many_files() {
         suffix: String::from("_minified"),
         concat_output: None,
         concat_to_stdout: false,
+        include_file_path: true,
     };
 
     assert_eq!(args.files.len(), 100);
@@ -207,6 +220,7 @@ fn test_args_default_suffix() {
         suffix: String::from("_minified"),
         concat_output: None,
         concat_to_stdout: false,
+        include_file_path: true,
     };
 
     // This matches the default_value="_minified" from the clap configuration
@@ -221,7 +235,8 @@ fn test_args_empty_suffix() {
         suffix: String::new(),
         concat_output: None,
         concat_to_stdout: false,
+        include_file_path: true,
     };
 
-    assert!(args.suffix.is_empty());
+    assert_eq!(args.suffix.is_empty(), true);
 }

@@ -38,6 +38,7 @@ pub async fn process_all(args: &Args) -> Result<()> {
                     &args.suffix,
                     args.concat_output.as_deref(),
                     args.concat_to_stdout,
+                    args.include_file_path,
                     stdout,
                 )
                     .await;
@@ -76,13 +77,29 @@ pub async fn process_all(args: &Args) -> Result<()> {
     Ok(())
 }
 
+#[cfg(target_os = "windows")]
+const EOL: &str = "\r\n";
+
+#[cfg(not(target_os = "windows"))]
+const EOL: &str = "\n";
+
+/// Strip Windows extended-length path prefix (\\?\) for cleaner display
+fn format_path_for_output(path: &str) -> String {
+    if path.starts_with("\\\\?\\") {
+        path.strip_prefix("\\\\?\\").unwrap_or(path).to_string()
+    } else {
+        path.to_string()
+    }
+}
+
 /// Process a single file.
-async fn process_single_file(
+async fn process_single_file<W: io::Write + Send + 'static>(
     file_path: &str,
     suffix: &str,
     concat_output: Option<&str>,
     concat_to_stdout: bool,
-    stdout: Arc<Mutex<io::Stdout>>,
+    include_file_path: bool,
+    stdout: Arc<Mutex<W>>,
 ) -> Result<()> {
     let path = Path::new(file_path);
 
@@ -99,10 +116,21 @@ async fn process_single_file(
     // Minify
     let minified = minify(&source)?;
 
+    // Build output with optional file path prefix
+    let output = if include_file_path {
+        let full_path = std::fs::canonicalize(path)?
+            .to_string_lossy()
+            .to_string();
+        let formatted_path = format_path_for_output(&full_path);
+        format!("// {}{}{}", formatted_path, EOL, minified)
+    } else {
+        minified
+    };
+
     if concat_to_stdout {
         // Write to stdout as thread finishes
         let mut stdout_lock = stdout.lock().await;
-        stdout_lock.write_all(minified.as_bytes())?;
+        stdout_lock.write_all(output.as_bytes())?;
         stdout_lock.flush()?;
     } else if let Some(concat_path) = concat_output {
         // Append to concatenation file (handle locking separately)
@@ -111,14 +139,14 @@ async fn process_single_file(
             .append(true)
             .open(concat_path)?;
         let mut writer = BufWriter::new(file);
-        writer.write_all(minified.as_bytes())?;
+        writer.write_all(output.as_bytes())?;
         writer.flush()?;
     } else {
         // Write to individual output file
         let output_path = get_deduplicated_path(path, suffix)?;
         let file = fs::File::create(&output_path)?;
         let mut writer = BufWriter::new(file);
-        writer.write_all(minified.as_bytes())?;
+        writer.write_all(output.as_bytes())?;
         writer.flush()?;
 
         // Restore metadata
