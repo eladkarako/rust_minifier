@@ -158,7 +158,9 @@ pub async fn process_stdin(args: &Args) -> Result<()> {
     // Read from stdin with buffered reader
     let mut reader = BufReader::new(io::stdin().lock());
     let mut source = String::new();
-    reader.read_to_end(&mut source)?;
+    let mut buffer = Vec::new();
+    reader.read_to_end(&mut buffer)?;
+    let source = String::from_utf8(buffer)?;
 
     // Minify
     let minified = minify(&source)?;
