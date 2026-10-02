@@ -41,6 +41,7 @@ fn remove_comments_and_rustdocs(source: &str) -> Result<String> {
             escape_next = false;
             continue;
         }
+
         if in_string {
             result.push(ch);
             if ch == '\\' {
@@ -64,6 +65,8 @@ fn remove_comments_and_rustdocs(source: &str) -> Result<String> {
             }
             continue;
         }
+
+        // Handle raw strings
         if ch == 'r'
             && matches!(chars.peek(), Some(&'"') | Some(&'#'))
         {
@@ -92,8 +95,61 @@ fn remove_comments_and_rustdocs(source: &str) -> Result<String> {
             continue;
         }
 
+        // Handle regular strings
+        if (ch == '"' || ch == '\'') && !in_string {
+            in_string = true;
+            string_char = ch;
+            result.push(ch);
+            continue;
+        }
+
+        // Handle comments
+        if ch == '/' {
+            if chars.peek() == Some(&'/') {
+                // Single-line comment or rustdoc (// or /// or //!)
+                chars.next(); // consume second '/'
+                // Check if it's a rustdoc
+                let is_rustdoc = chars.peek() == Some(&'/')
+                    || chars.peek() == Some(&'!');
+                if is_rustdoc {
+                    chars.next(); // consume the third character
+                }
+                // Skip until end of line
+                while let Some(&c) = chars.peek() {
+                    if c == '\n' {
+                        break;
+                    }
+                    chars.next();
+                }
+                // Preserve newline for structure
+                if chars.peek() == Some(&'\n') {
+                    result.push('\n');
+                    chars.next();
+                }
+                continue;
+            } else if chars.peek() == Some(&'*') {
+                // Multi-line comment or rustdoc (/* or /** or /*!)
+                chars.next(); // consume '*'
+                let is_rustdoc = chars.peek() == Some(&'*')
+                    || chars.peek() == Some(&'!');
+                if is_rustdoc {
+                    chars.next(); // consume the extra character
+                }
+                // Skip until */
+                let mut prev_ch = ' ';
+                while let Some(c) = chars.next() {
+                    if prev_ch == '*' && c == '/' {
+                        break;
+                    }
+                    prev_ch = c;
+                }
+                continue;
+            }
+        }
+
         result.push(ch);
     }
+
     Ok(result)
 }
 
