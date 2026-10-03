@@ -72,6 +72,8 @@ set "ARGS=%ARGS% set +o pipefail;"
 set "ARGS=%ARGS% set +o errexit;"
 ::------------------ print each command before executing (debug mode).
 set "ARGS=%ARGS% set -o xtrace;"
+::------------------ allow WSL to load.
+set "ARGS=%ARGS% sleep 5;"
 ::------------------ apply profile/user custom stuff and path (`bash -lc` does that already. if missing rustup won't be found in PATH)
 set "ARGS=%ARGS% source ~/.profile;"
 set "ARGS=%ARGS% source ~/.bashrc;"

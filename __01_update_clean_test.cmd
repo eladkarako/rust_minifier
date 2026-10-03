@@ -59,6 +59,8 @@ title TESTS - on WSL for Linux
 set "ARGS="
 set "ARGS=%ARGS% set +o pipefail;"
 set "ARGS=%ARGS% set +o errexit;"
+set "ARGS=%ARGS% set -o xtrace;"
+set "ARGS=%ARGS% sleep 5;"
 set "ARGS=%ARGS% source ~/.profile;"
 set "ARGS=%ARGS% source ~/.bashrc;"
 set "ARGS=%ARGS% rustup update;"

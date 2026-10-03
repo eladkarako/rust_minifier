@@ -24,7 +24,8 @@ note: `STDIN` is stored in file with `_raw` suffix, then minified to file with `
 
 - `-s`, `--suffix <SUFFIX>` - Output suffix for minified files - default: `_minified`.
 - `--concat-output <PATH>` - Concatenate all output to this file.
-- `--concat-to-stdout` - Write to stdout instead of files as each thread finishes.
+- `--concat-to-stdout` - Write to stdout instead of files as each thread finishes (default `false`).
+- `--include-file-path` - Adds the file's path in a comment at the head of the file (default `true`).
 - `-h`, `--help` - Print help.
 - `-V`, `--version` - Print version.
 
