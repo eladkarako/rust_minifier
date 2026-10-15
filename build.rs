@@ -1,44 +1,16 @@
-use std::{env, path::PathBuf};
-use winres::WindowsResource;
-
+#[cfg(not(target_os = "windows"))]
 fn main() {
-    let target_os =
-        env::var("CARGO_CFG_TARGET_OS").unwrap_or_default();
-    if target_os != "windows" {
-        return;
-    }
-
-    let manifest_dir: PathBuf = env::var("CARGO_MANIFEST_DIR")
-        .expect("CARGO_MANIFEST_DIR not set")
-        .into();
-
-    let cargo_toml = load_cargo_toml(&manifest_dir);
-    let package = &cargo_toml["package"];
-
-    let name = get_string(package, "name", "unknown");
-    let version = get_string(package, "version", "0.0.0");
-    let description = get_string(package, "description", "");
-    let repository = get_string(package, "repository", "");
-    let author = get_first_author(package);
-
-    let (major, minor, patch, release) = parse_version(version);
-    let packed = pack_version(major, minor, patch, release);
-
-    set_windows_resources(
-        &manifest_dir,
-        name,
-        description,
-        repository,
-        author,
-        major,
-        minor,
-        patch,
-        release,
-        packed,
-    );
+    // Empty on non-Windows
 }
 
+#[cfg(target_os = "windows")]
+use std::{env, path::PathBuf};
+
+#[cfg(target_os = "windows")]
+use winres::WindowsResource;
+
 /// Loads and parses the Cargo.toml file
+#[cfg(target_os = "windows")]
 fn load_cargo_toml(manifest_dir: &PathBuf) -> toml::Value {
     let cargo_toml_path = manifest_dir.join("Cargo.toml");
     let content = std::fs::read_to_string(&cargo_toml_path)
@@ -47,6 +19,7 @@ fn load_cargo_toml(manifest_dir: &PathBuf) -> toml::Value {
 }
 
 /// Retrieves a string value from a TOML table with a default fallback
+#[cfg(target_os = "windows")]
 #[inline]
 fn get_string<'a>(
     table: &'a toml::Value,
@@ -57,6 +30,7 @@ fn get_string<'a>(
 }
 
 /// Extracts the first author from the authors array
+#[cfg(target_os = "windows")]
 fn get_first_author(package: &toml::Value) -> &str {
     package["authors"]
         .as_array()
@@ -66,6 +40,7 @@ fn get_first_author(package: &toml::Value) -> &str {
 }
 
 /// Parses a version string (e.g., "1.2.3.4") into (major, minor, patch, release)
+#[cfg(target_os = "windows")]
 fn parse_version(version: &str) -> (u64, u64, u64, u64) {
     let parts: Vec<&str> = version.split('.').collect();
 
@@ -82,6 +57,7 @@ fn parse_version(version: &str) -> (u64, u64, u64, u64) {
 }
 
 /// Packs version numbers into a single u64 (48-bit major, 32-bit minor, 16-bit patch, 16-bit release)
+#[cfg(target_os = "windows")]
 #[inline]
 fn pack_version(
     major: u64,
@@ -93,6 +69,7 @@ fn pack_version(
 }
 
 /// Configures and compiles Windows resource information
+#[cfg(target_os = "windows")]
 fn set_windows_resources(
     manifest_dir: &PathBuf,
     name: &str,
@@ -141,4 +118,36 @@ fn set_windows_resources(
     );
 
     res.compile().expect("Failed to compile Windows resources");
+}
+
+#[cfg(target_os = "windows")]
+fn main() {
+    let manifest_dir: PathBuf = env::var("CARGO_MANIFEST_DIR")
+        .expect("CARGO_MANIFEST_DIR not set")
+        .into();
+
+    let cargo_toml = load_cargo_toml(&manifest_dir);
+    let package = &cargo_toml["package"];
+
+    let name = get_string(package, "name", "unknown");
+    let version = get_string(package, "version", "0.0.0");
+    let description = get_string(package, "description", "");
+    let repository = get_string(package, "repository", "");
+    let author = get_first_author(package);
+
+    let (major, minor, patch, release) = parse_version(version);
+    let packed = pack_version(major, minor, patch, release);
+
+    set_windows_resources(
+        &manifest_dir,
+        name,
+        description,
+        repository,
+        author,
+        major,
+        minor,
+        patch,
+        release,
+        packed,
+    );
 }

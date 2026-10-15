@@ -5,7 +5,7 @@
 :: updates local rust components in Windows and WSL.
 :: clean and test on Windows for native Windows (x86_64), and WSL for native Linux (x86_64).
 :: **** if a test fails the result of cargo test effects the shell's exit code, which will quit before building
-:: it builds on Windows for Windows, and on WSL for Android NDK, Linux, embedded and powerpc. (Android recently moved toolchain from Windows to WSL, keeping just windows-msvc on Windows).
+:: it builds on Windows for Windows, and on WSL for Android NDK, Linux. (Android recently moved toolchain from Windows to WSL, keeping just windows-msvc on Windows).
 ::------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
@@ -56,50 +56,53 @@ cargo clean
 rustup update
 
 ::---------------------------------------------------------------- build for Windows (on Windows)
-rustup target add   x86_64-pc-windows-msvc   i686-pc-windows-msvc
+rustup target add   x86_64-pc-windows-msvc   i686-pc-windows-msvc  aarch64-pc-windows-msvc
 title x86_64-pc-windows-msvc
 cargo build  --release  --target   x86_64-pc-windows-msvc
 title i686-pc-windows-msvc
 cargo build  --release  --target   i686-pc-windows-msvc
+title aarch64-pc-windows-msvc
+cargo build  --release  --target   aarch64-pc-windows-msvc
 
 
 
 ::------------------------------------------- on Linux (WSL). set +o pipefail not fail on pipe. set +o errexit no exit on error.
 set "ARGS="
 ::------------------ continue (do not exit) even if pipeline command fails.
-set "ARGS=%ARGS% set +o pipefail;"
+set "ARGS=%ARGS% set +o pipefail ;"
 ::------------------ continue (do not exit) even if there is an error (exit code != 0).
-set "ARGS=%ARGS% set +o errexit;"
+set "ARGS=%ARGS% set +o errexit ;"
 ::------------------ print each command before executing (debug mode).
-set "ARGS=%ARGS% set -o xtrace;"
+set "ARGS=%ARGS% set -o xtrace ;"
 ::------------------ allow WSL to load.
-set "ARGS=%ARGS% sleep 5;"
+set "ARGS=%ARGS% sleep 5 ;"
 ::------------------ apply profile/user custom stuff and path (`bash -lc` does that already. if missing rustup won't be found in PATH)
-set "ARGS=%ARGS% source ~/.profile;"
-set "ARGS=%ARGS% source ~/.bashrc;"
+set "ARGS=%ARGS% source ~/.profile ;"
+set "ARGS=%ARGS% source ~/.bashrc ;"
 ::------------------ update toolchains and components (WSL - Linux)
-set "ARGS=%ARGS% rustup update;"
+set "ARGS=%ARGS% rustup update ;"
 ::------------------ Android NDK 30.0.16248370 SDK v21
-set "ARGS=%ARGS% rustup target add   x86_64-linux-android   i686-linux-android   aarch64-linux-android   armv7-linux-androideabi;"
-set "ARGS=%ARGS% cargo build  --release  --target   x86_64-linux-android;"
-set "ARGS=%ARGS% cargo build  --release  --target   i686-linux-android;"
-set "ARGS=%ARGS% cargo build  --release  --target   aarch64-linux-android;"
-set "ARGS=%ARGS% cargo build  --release  --target   armv7-linux-androideabi;"
-::------------------ Linux
-set "ARGS=%ARGS% rustup target add   aarch64-unknown-linux-gnu  aarch64-unknown-linux-musl  x86_64-unknown-linux-gnu  x86_64-unknown-linux-musl;"
-set "ARGS=%ARGS% cargo build  --release  --target   aarch64-unknown-linux-gnu;"
-set "ARGS=%ARGS% cargo build  --release  --target   aarch64-unknown-linux-musl;"
-set "ARGS=%ARGS% cargo build  --release  --target   x86_64-unknown-linux-gnu;"
-set "ARGS=%ARGS% cargo build  --release  --target   x86_64-unknown-linux-musl;"
-::------------------ Embedded
-set "ARGS=%ARGS% rustup target add   armv7-unknown-linux-gnueabihf  armv7-unknown-linux-musleabihf;"
-set "ARGS=%ARGS% cargo build  --release  --target   armv7-unknown-linux-gnueabihf;"
-set "ARGS=%ARGS% cargo build  --release  --target   armv7-unknown-linux-musleabihf;"
-::------------------ PowerPC
-set "ARGS=%ARGS% rustup target add   powerpc64-unknown-linux-gnu  powerpc64le-unknown-linux-gnu  powerpc-unknown-linux-gnu;"
-set "ARGS=%ARGS% cargo build  --release  --target   powerpc64-unknown-linux-gnu;"
-set "ARGS=%ARGS% cargo build  --release  --target   powerpc64le-unknown-linux-gnu;"
-set "ARGS=%ARGS% cargo build  --release  --target   powerpc-unknown-linux-gnu;"
+set "ARGS=%ARGS% rustup target add   aarch64-linux-android   i686-linux-android  x86_64-linux-android  armv7-linux-androideabi ;"
+set "ARGS=%ARGS% cargo build  --release  --target   aarch64-linux-android ;"
+set "ARGS=%ARGS% cargo build  --release  --target   i686-linux-android ;"
+set "ARGS=%ARGS% cargo build  --release  --target   x86_64-linux-android ;"
+set "ARGS=%ARGS% cargo build  --release  --target   armv7-linux-androideabi ;"
+::------------------ Linux (gnu)
+set "ARGS=%ARGS% rustup target add  aarch64-unknown-linux-gnu  i686-unknown-linux-gnu  x86_64-unknown-linux-gnu  armv7-unknown-linux-gnueabi  armv7-unknown-linux-gnueabihf ;"
+set "ARGS=%ARGS% cargo build  --release  --target   aarch64-unknown-linux-gnu ;"
+set "ARGS=%ARGS% cargo build  --release  --target   i686-unknown-linux-gnu ;"
+set "ARGS=%ARGS% cargo build  --release  --target   x86_64-unknown-linux-gnu ;"
+set "ARGS=%ARGS% cargo build  --release  --target   armv7-unknown-linux-gnueabi ;"
+set "ARGS=%ARGS% cargo build  --release  --target   armv7-unknown-linux-gnueabihf ;"
+::------------------ Linux (musl)
+set "ARGS=%ARGS% rustup target add  aarch64-unknown-linux-musl  i686-unknown-linux-musl  x86_64-unknown-linux-musl  armv7-unknown-linux-musleabi  armv7-unknown-linux-musleabihf ;"
+set "ARGS=%ARGS% cargo build  --release  --target   aarch64-unknown-linux-musl ;"
+set "ARGS=%ARGS% cargo build  --release  --target   i686-unknown-linux-musl ;"
+set "ARGS=%ARGS% cargo build  --release  --target   x86_64-unknown-linux-musl ;"
+set "ARGS=%ARGS% cargo build  --release  --target   armv7-unknown-linux-musleabi ;"
+set "ARGS=%ARGS% cargo build  --release  --target   armv7-unknown-linux-musleabihf ;"
+
+title linux
 call wsl bash -lc "%ARGS%"
 
 
