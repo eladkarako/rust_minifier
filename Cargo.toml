@@ -1,7 +1,7 @@
 [package]
 authors = ["Elad Karako <eladkarako@gmail.com>"]
 categories = ["command-line-utilities", "text-processing"]
-description = "whitespace-based rust-code minification, with comment and rustdoc removing. parallel processing."
+description = "whitespace-based rust-code minification, with comment and rustdoc removing. and TOML minification, parallel processing."
 documentation = "https://github.com/eladkarako/rust_minifier#readme"
 edition = "2024"
 homepage = "https://github.com/eladkarako/rust_minifier"
