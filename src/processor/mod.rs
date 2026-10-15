@@ -8,45 +8,48 @@ use tokio::sync::Mutex;
 
 use crate::args::Args;
 use crate::metadata::{apply_metadata, capture_metadata};
-use crate::minifier::minify;
+use crate::minifier;
 
-/// Process all files with Tokio parallelism.
 pub async fn process_all(args: &Args) -> Result<()> {
     let max_threads = num_cpus::get().saturating_mul(2).max(1);
     let semaphore =
         Arc::new(tokio::sync::Semaphore::new(max_threads));
-
     let stdout = Arc::new(Mutex::new(io::stdout()));
     let mut handles = vec![];
-
     let start_time = std::time::Instant::now();
+
+    // Clone args fields once, outside the loop
+    let suffix = args.suffix.clone();
+    let concat_output = args.concat_output.clone();
+    let concat_to_stdout = args.concat_to_stdout;
+    let include_file_path = args.include_file_path;
+    let num_files = args.files.len();
 
     for (idx, file) in args.files.iter().enumerate() {
         let sem = semaphore.clone();
         let file = file.clone();
-        let _suffix = args.suffix.clone();
-        let _concat_output = args.concat_output.clone();
-        let _concat_to_stdout = args.concat_to_stdout;
+        let suffix = suffix.clone();
+        let concat_output = concat_output.clone();
         let stdout = stdout.clone();
+
         let handle = tokio::spawn({
-            let args = args.clone();
             async move {
                 let _permit = sem.acquire().await.ok();
                 let file_start = std::time::Instant::now();
                 let result = process_single_file(
                     &file,
-                    &args.suffix,
-                    args.concat_output.as_deref(),
-                    args.concat_to_stdout,
-                    args.include_file_path,
+                    &suffix,
+                    concat_output.as_deref(),
+                    concat_to_stdout,
+                    include_file_path,
                     stdout,
                 )
-                    .await;
+                .await;
                 let elapsed = file_start.elapsed().as_millis();
                 eprintln!(
                     "[{}/{}] {} ... {}ms",
                     idx + 1,
-                    args.files.len(),
+                    num_files,
                     file,
                     elapsed
                 );
@@ -73,17 +76,14 @@ pub async fn process_all(args: &Args) -> Result<()> {
 
     let elapsed = start_time.elapsed().as_millis();
     eprintln!("Total time: {}ms", elapsed);
-
     Ok(())
 }
 
 #[cfg(target_os = "windows")]
 const EOL: &str = "\r\n";
-
 #[cfg(not(target_os = "windows"))]
 const EOL: &str = "\n";
 
-/// Strip Windows extended-length path prefix (\\?\) for cleaner display
 fn format_path_for_output(path: &str) -> String {
     if path.starts_with("\\\\?\\") {
         path.strip_prefix("\\\\?\\").unwrap_or(path).to_string()
@@ -92,7 +92,6 @@ fn format_path_for_output(path: &str) -> String {
     }
 }
 
-/// Process a single file.
 async fn process_single_file<W: io::Write + Send + 'static>(
     file_path: &str,
     suffix: &str,
@@ -102,38 +101,38 @@ async fn process_single_file<W: io::Write + Send + 'static>(
     stdout: Arc<Mutex<W>>,
 ) -> Result<()> {
     let path = Path::new(file_path);
-
-    // Read file with buffered reader
     let file = fs::File::open(path)?;
     let mut reader = BufReader::new(file);
     let mut buffer = Vec::new();
     reader.read_to_end(&mut buffer)?;
     let source = String::from_utf8(buffer)?;
-
-    // Capture metadata before modification
     let meta = capture_metadata(path)?;
 
-    // Minify
-    let minified = minify(&source)?;
+    // Auto-detect file type and minify
+    let minified = minifier::minify(&source, path)?;
 
-    // Build output with optional file path prefix
     let output = if include_file_path {
         let full_path = std::fs::canonicalize(path)?
             .to_string_lossy()
             .to_string();
         let formatted_path = format_path_for_output(&full_path);
-        format!("// {}{}{}", formatted_path, EOL, minified)
+
+        // Use appropriate comment syntax based on file type
+        let comment_char =
+            if file_path.ends_with(".toml") { "#" } else { "//" };
+        format!(
+            "{} {}{}{}",
+            comment_char, formatted_path, EOL, minified
+        )
     } else {
         minified
     };
 
     if concat_to_stdout {
-        // Write to stdout as thread finishes
         let mut stdout_lock = stdout.lock().await;
         stdout_lock.write_all(output.as_bytes())?;
         stdout_lock.flush()?;
     } else if let Some(concat_path) = concat_output {
-        // Append to concatenation file (handle locking separately)
         let file = fs::OpenOptions::new()
             .create(true)
             .append(true)
@@ -142,21 +141,17 @@ async fn process_single_file<W: io::Write + Send + 'static>(
         writer.write_all(output.as_bytes())?;
         writer.flush()?;
     } else {
-        // Write to individual output file
         let output_path = get_deduplicated_path(path, suffix)?;
         let file = fs::File::create(&output_path)?;
         let mut writer = BufWriter::new(file);
         writer.write_all(output.as_bytes())?;
         writer.flush()?;
-
-        // Restore metadata
         apply_metadata(&output_path, &meta)?;
     }
 
     Ok(())
 }
 
-/// Get deduplicated output file path.
 fn get_deduplicated_path(
     original: &Path,
     suffix: &str,
@@ -168,22 +163,28 @@ fn get_deduplicated_path(
         .file_stem()
         .ok_or_else(|| anyhow::anyhow!("No file stem"))?;
 
-    // First, try the path without a counter
+    // Detect original extension to preserve it
+    let ext = original
+        .extension()
+        .and_then(|s| s.to_str())
+        .unwrap_or("rs");
+
     let mut output_path = parent.join(format!(
-        "{}{}.rs",
+        "{}{}.{}",
         stem.to_string_lossy(),
-        suffix
+        suffix,
+        ext
     ));
 
-    // If it exists, add counters: _1, _2, _3, etc.
     if output_path.exists() {
         let mut counter = 1;
         loop {
             output_path = parent.join(format!(
-                "{}{}_{}.rs",
+                "{}{}_{}.{}",
                 stem.to_string_lossy(),
                 suffix,
-                counter
+                counter,
+                ext
             ));
             if !output_path.exists() {
                 break;
@@ -195,9 +196,7 @@ fn get_deduplicated_path(
     Ok(output_path)
 }
 
-/// Process stdin.
 pub async fn process_stdin(_args: &Args) -> Result<()> {
-    // Check if stdin is a terminal
     if io::stdin().is_terminal() {
         eprintln!(
             "No files provided and stdin is a terminal. Use --help for usage."
@@ -205,21 +204,19 @@ pub async fn process_stdin(_args: &Args) -> Result<()> {
         return Ok(());
     }
 
-    // Read from stdin with buffered reader
     let mut reader = BufReader::new(io::stdin().lock());
     let mut buffer = Vec::new();
     reader.read_to_end(&mut buffer)?;
     let source = String::from_utf8(buffer)?;
 
-    // Minify
-    let minified = minify(&source)?;
+    // For stdin, default to Rust unless we can detect otherwise
+    let dummy_path = Path::new("dummy.rs");
+    let minified = minifier::minify(&source, dummy_path)?;
 
-    // Write to stdout
     let stdout = io::stdout();
     let mut writer = BufWriter::new(stdout.lock());
     writer.write_all(minified.as_bytes())?;
     writer.flush()?;
-
     Ok(())
 }
 
