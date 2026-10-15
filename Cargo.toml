@@ -20,7 +20,7 @@ path = "src/main.rs"
 [dependencies]
 anyhow = "1.0.104"                                         # Flexible error handling with context
 chrono = "0.4.45"                                          # Date and time handling
-clap = { version = "4.6.7", features = ["derive"] }         # Command-line argument parsing with derive macros
+clap = { version = "4.6.7", features = ["derive", "wrap_help", "usage", "cargo", "suggestions", "help", "color"] }         # Command-line argument parsing with derive macros
 filetime = "0.2.29"                                        # Access and modify file metadata timestamps
 is-terminal = "0.4.17"                                     # Detect if stdout/stderr is connected to a terminal
 num_cpus = "1.17.0"                                        # Query the number of CPUs available
