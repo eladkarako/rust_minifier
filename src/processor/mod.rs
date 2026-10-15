@@ -44,7 +44,7 @@ pub async fn process_all(args: &Args) -> Result<()> {
                     include_file_path,
                     stdout,
                 )
-                .await;
+                    .await;
                 let elapsed = file_start.elapsed().as_millis();
                 eprintln!(
                     "[{}/{}] {} ... {}ms",

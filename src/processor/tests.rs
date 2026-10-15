@@ -31,7 +31,7 @@ async fn test_process_single_file_minification_applied() {
         true,
         stdout,
     )
-    .await;
+        .await;
 
     let output_content = fs::read_to_string(&output_path).unwrap();
     // Output should not contain the comment
@@ -154,7 +154,7 @@ async fn test_process_single_file_string_literals() {
         true,
         stdout,
     )
-    .await;
+        .await;
 
     assert!(result.is_ok());
 }
@@ -179,7 +179,7 @@ async fn test_process_single_file_raw_strings() {
         true,
         stdout,
     )
-    .await;
+        .await;
 
     assert!(result.is_ok());
 }
@@ -209,7 +209,7 @@ fn test_foo() {}
         true,
         stdout,
     )
-    .await;
+        .await;
 
     assert!(result.is_ok());
 }
@@ -233,7 +233,7 @@ async fn test_process_single_file_with_lifetimes() {
         true,
         stdout,
     )
-    .await;
+        .await;
 
     assert!(result.is_ok());
 }
@@ -258,7 +258,7 @@ async fn test_process_single_file_with_where_clause() {
         true,
         stdout,
     )
-    .await;
+        .await;
 
     assert!(result.is_ok());
 }
@@ -282,7 +282,7 @@ async fn test_process_single_file_with_async() {
         true,
         stdout,
     )
-    .await;
+        .await;
 
     assert!(result.is_ok());
 }
@@ -306,7 +306,7 @@ async fn test_process_single_file_with_unsafe() {
         true,
         stdout,
     )
-    .await;
+        .await;
 
     assert!(result.is_ok());
 }
@@ -331,7 +331,7 @@ async fn test_process_single_file_with_const() {
         true,
         stdout,
     )
-    .await;
+        .await;
 
     assert!(result.is_ok());
 }
@@ -355,7 +355,7 @@ async fn test_process_single_file_with_modules() {
         true,
         stdout,
     )
-    .await;
+        .await;
 
     assert!(result.is_ok());
 }
@@ -379,7 +379,7 @@ async fn test_process_single_file_with_use() {
         true,
         stdout,
     )
-    .await;
+        .await;
 
     assert!(result.is_ok());
 }
@@ -429,7 +429,7 @@ fn add(a: i32, b: i32) -> i32 {
         true,
         stdout,
     )
-    .await;
+        .await;
 
     assert!(result.is_ok());
     let output = fs::read_to_string(&output_path).unwrap();
@@ -545,7 +545,7 @@ async fn test_include_file_path_true() {
         true,
         output.clone(),
     )
-    .await;
+        .await;
 
     assert!(result.is_ok(), "process_single_file should succeed");
 

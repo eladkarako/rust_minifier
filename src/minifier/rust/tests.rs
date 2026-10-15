@@ -1,7 +1,8 @@
 use super::*;
 use proc_macro2::{TokenStream, TokenTree};
 
-use crate::minifier::Minifier; // Import the trait
+// Import the trait
+use crate::minifier::Minifier;
 
 /// Helper to create a RustMinifier instance
 fn minify_rust(input: &str) -> anyhow::Result<String> {
