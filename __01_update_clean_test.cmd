@@ -55,6 +55,15 @@ set "EXIT_CODE=%ErrorLevel%"
 if ["%EXIT_CODE%"] neq ["0"] ( goto ERROR_TEST )
 
 
+echo.
+echo.
+echo.
+timeout /t 10
+echo.
+echo.
+echo.
+
+
 title TESTS - on WSL for Linux
 set "ARGS="
 set "ARGS=%ARGS% set +o pipefail;"
