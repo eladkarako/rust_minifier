@@ -1,11 +1,26 @@
 use super::*;
 use proc_macro2::{TokenStream, TokenTree};
 
+use crate::minifier::Minifier; // Import the trait
+
+/// Helper to create a RustMinifier instance
+fn minify_rust(input: &str) -> anyhow::Result<String> {
+    RustMinifier.minify(input)
+}
+
+/// Test simple comment removal
+#[test]
+fn test_rust_minify_removes_comments() {
+    let input = "fn main() { // comment\n    println!(\"hello\"); }";
+    let result = RustMinifier.minify(input).unwrap();
+    assert_eq!(result.contains("comment"), false);
+}
+
 /// Test minify with simple function
 #[test]
 fn test_minify_simple_function() {
     let input = "fn main() { println!(\"Hello\"); }";
-    let result = minify(input).unwrap();
+    let result = minify_rust(input).unwrap();
 
     // Minified output should not contain comments or excessive whitespace
     assert_eq!(result.contains("//"), false);
@@ -19,7 +34,7 @@ fn test_minify_removes_line_comments() {
         // This is a comment
         println!(\"Hello\");
     }";
-    let result = minify(input).unwrap();
+    let result = minify_rust(input).unwrap();
 
     assert_eq!(result.contains("This is a comment"), false);
     assert_eq!(result.contains("println"), true);
@@ -32,7 +47,7 @@ fn test_minify_removes_block_comments() {
         /* This is a block comment */
         println!(\"Hello\");
     }";
-    let result = minify(input).unwrap();
+    let result = minify_rust(input).unwrap();
 
     assert_eq!(result.contains("This is a block comment"), false);
     assert_eq!(result.contains("println"), true);
@@ -43,7 +58,7 @@ fn test_minify_removes_block_comments() {
 fn test_minify_removes_rustdoc() {
     let input = "/// This is a rustdoc comment
     fn my_function() { }";
-    let result = minify(input).unwrap();
+    let result = minify_rust(input).unwrap();
 
     assert_eq!(result.contains("This is a rustdoc comment"), false);
     assert_eq!(result.contains("fn my_function"), true);
@@ -53,7 +68,7 @@ fn test_minify_removes_rustdoc() {
 #[test]
 fn test_minify_preserves_strings() {
     let input = "fn main() { let s = \"hello world with spaces\"; }";
-    let result = minify(input).unwrap();
+    let result = minify_rust(input).unwrap();
 
     assert_eq!(result.contains("hello world with spaces"), true);
 }
@@ -62,7 +77,7 @@ fn test_minify_preserves_strings() {
 #[test]
 fn test_minify_string_with_comment_markers() {
     let input = "fn main() { let s = \"// not a comment\"; }";
-    let result = minify(input).unwrap();
+    let result = minify_rust(input).unwrap();
 
     assert_eq!(result.contains("// not a comment"), true);
 }
@@ -74,7 +89,7 @@ fn test_minify_nested_comments() {
         /* outer /* nested */ comment */
         println!(\"test\");
     }";
-    let result = minify(input).unwrap();
+    let result = minify_rust(input).unwrap();
 
     assert_eq!(result.contains("println"), true);
 }
@@ -83,7 +98,7 @@ fn test_minify_nested_comments() {
 #[test]
 fn test_minify_empty_input() {
     let input = "";
-    let result = minify(input).unwrap();
+    let result = minify_rust(input).unwrap();
 
     assert_eq!(result.trim(), "");
 }
@@ -92,7 +107,7 @@ fn test_minify_empty_input() {
 #[test]
 fn test_minify_only_comments() {
     let input = "// Just a comment\n// Another comment";
-    let result = minify(input).unwrap();
+    let result = minify_rust(input).unwrap();
 
     assert_eq!(result.trim(), "");
 }
@@ -101,7 +116,7 @@ fn test_minify_only_comments() {
 #[test]
 fn test_minify_essential_whitespace() {
     let input = "let x = 5;";
-    let result = minify(input).unwrap();
+    let result = minify_rust(input).unwrap();
 
     // Should preserve tokens (let, x, =, 5, ;)
     assert_eq!(result.contains("let"), true);
@@ -116,7 +131,7 @@ fn test_minify_multiple_functions() {
     // Comment between functions
     fn func2() { }
     ";
-    let result = minify(input).unwrap();
+    let result = minify_rust(input).unwrap();
 
     assert_eq!(result.contains("fn func1"), true);
     assert_eq!(result.contains("fn func2"), true);
@@ -127,7 +142,7 @@ fn test_minify_multiple_functions() {
 #[test]
 fn test_minify_macro_invocation() {
     let input = "fn main() { println!(\"test\"); vec![1, 2, 3]; }";
-    let result = minify(input).unwrap();
+    let result = minify_rust(input).unwrap();
 
     assert_eq!(result.contains("println"), true);
     assert_eq!(result.contains("vec"), true);
@@ -138,7 +153,7 @@ fn test_minify_macro_invocation() {
 fn test_minify_attributes() {
     let input = "#[derive(Debug)]
     struct MyStruct { }";
-    let result = minify(input).unwrap();
+    let result = minify_rust(input).unwrap();
 
     assert_eq!(result.contains("derive"), true);
     assert_eq!(result.contains("MyStruct"), true);
@@ -613,7 +628,7 @@ fn test_minify_complex_code() {
     }
     "#;
 
-    let result = minify(input).unwrap();
+    let result = minify_rust(input).unwrap();
 
     // Should remove all comments and rustdocs
     assert_eq!(result.contains("///"), false);
@@ -646,7 +661,7 @@ fn test_minify_with_attributes_and_macros() {
     }
     "#;
 
-    let result = minify(input).unwrap();
+    let result = minify_rust(input).unwrap();
 
     assert!(result.contains("derive"));
     assert!(result.contains("MyStruct"));
@@ -664,7 +679,7 @@ fn test_minify_module_docs() {
     fn my_func() {}
     "#;
 
-    let result = minify(input).unwrap();
+    let result = minify_rust(input).unwrap();
 
     assert_eq!(result.contains("This is a module"), false);
     assert_eq!(!result.contains("Function docs"), true);
@@ -685,7 +700,7 @@ fn test_minify_trait_impl() {
     }
     "#;
 
-    let result = minify(input).unwrap();
+    let result = minify_rust(input).unwrap();
 
     assert_eq!(result.contains("trait"), true);
     assert_eq!(result.contains("impl"), true);
@@ -703,7 +718,7 @@ fn test_minify_enums() {
     }
     "#;
 
-    let result = minify(input).unwrap();
+    let result = minify_rust(input).unwrap();
 
     assert_eq!(result.contains("enum"), true);
     assert_eq!(result.contains("Red"), true);
@@ -721,7 +736,7 @@ fn test_minify_async_await() {
     }
     "#;
 
-    let result = minify(input).unwrap();
+    let result = minify_rust(input).unwrap();
 
     assert_eq!(result.contains("async"), true);
     assert_eq!(result.contains("await"), true);
@@ -738,7 +753,7 @@ fn test_minify_lifetimes() {
     }
     "#;
 
-    let result = minify(input).unwrap();
+    let result = minify_rust(input).unwrap();
 
     assert_eq!(result.contains("'a"), true);
     assert_eq!(result.contains("Return borrowed data"), false);
@@ -758,7 +773,7 @@ fn test_remove_comments_unclosed_block() {
 #[test]
 fn test_minify_char_literals() {
     let input = r#"let c = 'a';"#;
-    let result = minify(input).unwrap();
+    let result = minify_rust(input).unwrap();
 
     assert_eq!(result.contains("'a'"), true);
 }
@@ -767,7 +782,7 @@ fn test_minify_char_literals() {
 #[test]
 fn test_minify_raw_strings() {
     let input = r##"let s = r#"raw string with "quotes""#;"##;
-    let result = minify(input).unwrap();
+    let result = minify_rust(input).unwrap();
 
     assert_eq!(result.contains("raw string"), true);
 }
@@ -776,7 +791,7 @@ fn test_minify_raw_strings() {
 #[test]
 fn test_minify_byte_strings() {
     let input = r#"let b = b"bytes";"#;
-    let result = minify(input).unwrap();
+    let result = minify_rust(input).unwrap();
 
     assert_eq!(result.contains("bytes"), true);
 }
@@ -791,7 +806,7 @@ fn test_minify_number_formats() {
     let d = 1_000_000;
     "#;
 
-    let result = minify(input).unwrap();
+    let result = minify_rust(input).unwrap();
 
     assert_eq!(
         result.contains("42")
@@ -805,7 +820,7 @@ fn test_minify_number_formats() {
 #[test]
 fn test_minify_floats() {
     let input = r#"let pi = 3.14159;"#;
-    let result = minify(input).unwrap();
+    let result = minify_rust(input).unwrap();
 
     assert!(result.contains("3.14159"));
 }
@@ -814,7 +829,7 @@ fn test_minify_floats() {
 #[test]
 fn test_minify_underscore_numbers() {
     let input = r#"let x = 1_000_000;"#;
-    let result = minify(input).unwrap();
+    let result = minify_rust(input).unwrap();
 
     // Underscores should be preserved in number literals
     assert!(
@@ -835,7 +850,7 @@ fn test_minify_match_expression() {
     };
     "#;
 
-    let result = minify(input).unwrap();
+    let result = minify_rust(input).unwrap();
 
     assert!(result.contains("match"));
     assert!(!result.contains("First case"));
@@ -852,7 +867,7 @@ fn test_minify_closure() {
     };
     "#;
 
-    let result = minify(input).unwrap();
+    let result = minify_rust(input).unwrap();
 
     assert!(result.contains("|"));
     assert!(!result.contains("Add two numbers"));
@@ -866,7 +881,7 @@ fn test_minify_type_alias() {
     type MyResult<T> = Result<T, Box<dyn std::error::Error>>;
     "#;
 
-    let result = minify(input).unwrap();
+    let result = minify_rust(input).unwrap();
 
     assert_eq!(result.contains("type"), true);
     assert_eq!(result.contains("Type alias"), false);
@@ -880,7 +895,7 @@ fn test_minify_const_declaration() {
     const MAX_SIZE: usize = 1024;
     "#;
 
-    let result = minify(input).unwrap();
+    let result = minify_rust(input).unwrap();
 
     assert_eq!(result.contains("const"), true);
     assert_eq!(result.contains("1024"), true);
@@ -894,7 +909,7 @@ fn test_minify_static_variable() {
     static COUNTER: AtomicU64 = AtomicU64::new(0);
     "#;
 
-    let result = minify(input).unwrap();
+    let result = minify_rust(input).unwrap();
 
     assert_eq!(result.contains("static"), true);
     assert_eq!(result.contains("COUNTER"), true);
@@ -913,7 +928,7 @@ fn test_minify_where_clause() {
     }
     "#;
 
-    let result = minify(input).unwrap();
+    let result = minify_rust(input).unwrap();
 
     assert_eq!(result.contains("where"), true);
     assert_eq!(!result.contains("T must implement"), true);
@@ -929,7 +944,7 @@ fn test_minify_unsafe_block() {
     }
     "#;
 
-    let result = minify(input).unwrap();
+    let result = minify_rust(input).unwrap();
 
     assert_eq!(result.contains("unsafe"), true);
     assert_eq!(!result.contains("Dereference raw pointer"), true);
@@ -945,8 +960,8 @@ fn test_minify_idempotency() {
     }
     "#;
 
-    let first = minify(input).unwrap();
-    let second = minify(&first).unwrap();
+    let first = minify_rust(input).unwrap();
+    let second = minify_rust(&first).unwrap();
 
     // Second minification should produce same or very similar result
     assert_eq!(first.trim(), second.trim());
@@ -992,7 +1007,7 @@ fn test_minify_preserves_semantics() {
     }
     "#;
 
-    let result = minify(input).unwrap();
+    let result = minify_rust(input).unwrap();
 
     // All essential tokens should be present
     assert!(result.contains("fn add"));
@@ -1011,7 +1026,7 @@ fn test_minify_single_line_comments_only() {
     // Comment 3
     "#;
 
-    let result = minify(input).unwrap();
+    let result = minify_rust(input).unwrap();
     assert!(result.trim().is_empty());
 }
 
@@ -1022,7 +1037,7 @@ fn test_minify_nested_block_comments() {
     let x = 5; /* outer /* inner */ comment */ let y = 10;
     "#;
 
-    let result = minify(input).unwrap();
+    let result = minify_rust(input).unwrap();
     assert_eq!(result.contains("let x = 5"), false);
     assert_eq!(result.contains("let x=5"), true);
     assert_eq!(result.contains("let y = 10"), false);
@@ -1039,7 +1054,7 @@ fn test_minify_multiline_string_with_comment_markers() {
     let t = "/* also not a comment */";
     "##;
 
-    let result = minify(input).unwrap();
+    let result = minify_rust(input).unwrap();
     assert!(result.contains("// not a comment"));
     assert!(result.contains("/* also not a comment */"));
 }
@@ -1052,7 +1067,7 @@ fn test_minify_raw_string_literals() {
     let code = r"C:\path\to\file";
     "##;
 
-    let result = minify(input).unwrap();
+    let result = minify_rust(input).unwrap();
     assert!(result.contains("raw string"));
     assert!(result.contains(r"C:\path"));
 }
