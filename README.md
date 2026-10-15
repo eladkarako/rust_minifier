@@ -1,6 +1,6 @@
 <h2><img width="48" src="resources/logos/app.png" /> rust_minifier</h2>
 
-minify any amount of Rust files,  
+minify any amount of Rust files, and Toml files,  
 and/or Rust content from a pipeline (initial `STDIN`),  
 write it to files, one big file, or all to `STDOUT`.  
 all processing is done in parallel.

@@ -1,3 +1,8 @@
+26.10.15
+* created toml logic minifier which is a lot simpler, line by line, basically comment remover and trim.
+* moved rust minifier logic to its own module.
+* created sub tree for rust and toml to have each their own `tests.rs`, and fixed rust tests since `minify` is no longer a standalone function — it's now a `trait` method on `RustMinifier`. so it needs to create an instance and call the method.
+
 26.10.3
 + added functionality --include-file-path true/false (default true) to add at the head of the minified content (file) the fully qualified path of the minified files. it helps when copying the content to somewhere else, since it tells about the folder tree structure.
 
