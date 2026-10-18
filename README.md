@@ -50,21 +50,19 @@ minification, parallel processing.
 Usage: rust_minifier.exe [OPTIONS] [FILES]...
 
 Arguments:
-  [FILES]...  Files to minify (leave empty for stdin)
+  [FILES]...
 
 Options:
-  -s, --suffix <SUFFIX>       Output suffix for minified files [default: _minified]
-      --concat-output <PATH>  Concatenate all output to this file
-      --concat-to-stdout      Write to stdout instead of files as each thread finishes
-                              [default: false]
-      --include-file-path     file's path as a comment in the minified file's head [default:
-                              true]
-  -h, --help                  Print help
-  -V, --version               Print version
+  -s, --suffix <SUFFIX>          [default: _minified]
+      --concat-to <DESTINATION>  [default: STDOUT]
+      --include-file-path
+  -h, --help                     Print help
+  -V, --version                  Print version
 ```
 
 ### uses
 - drag and drop any `.rs` or `.toml` over the execute as an argument to generate a minified file.
+- run `rust_minifier . --concat-to all.txt` to let rust_minifier recursively dig-though all your files and folders (in parallel - highly advised! very fast!) and join everything after minification to `all.txt` in current folder.
 - you can use it in your own batch files and first recursively collect the paths to all your `.rs`/`.toml` files in your project, before executing this program ONCE with all those as arguments, it works in parallel. then walk through to join all the files with `_minified` in it, they already include their fully qualified path as the first line in them (by default) so you can easily create one use file of all your project's structure.
 
 ### use cases.
