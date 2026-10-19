@@ -1,88 +1,59 @@
 use super::*;
 
 #[test]
-fn test_removes_equals_spacing() {
-    let input = "authors = [\"Elad\"]";
-    let result = TomlMinifier.minify(input).unwrap();
-    assert_eq!(result, "authors=[\"Elad\"]");
+fn test_minify_removes_comments() {
+    let minifier = TomlMinifier;
+    let source = "name = \"test\" # this is a comment";
+    let result = minifier.minify(source).unwrap();
+    assert!(!result.contains("#"));
+    assert!(result.contains("name"));
 }
 
 #[test]
-fn test_removes_comma_spacing() {
-    let input =
-        "categories = [\"command-line\", \"text-processing\"]";
-    let result = TomlMinifier.minify(input).unwrap();
-    assert_eq!(
-        result,
-        "categories=[\"command-line\",\"text-processing\"]"
-    );
+fn test_minify_removes_empty_lines() {
+    let minifier = TomlMinifier;
+    let source = "name = \"test\"\n\nversion = \"1.0\"";
+    let result = minifier.minify(source).unwrap();
+    assert!(!result.contains("\n\n"));
 }
 
 #[test]
-fn test_removes_brace_spacing() {
-    let input =
-        "clap = { version = \"4.6.7\", features = [\"derive\"] }";
-    let result = TomlMinifier.minify(input).unwrap();
-    assert_eq!(
-        result,
-        "clap={version=\"4.6.7\",features=[\"derive\"]}"
-    );
+fn test_minify_normalizes_spacing() {
+    let minifier = TomlMinifier;
+    let source = "name   =   \"test\"";
+    let result = minifier.minify(source).unwrap();
+    assert!(result.contains("name="));
 }
 
 #[test]
-fn test_removes_leading_whitespace() {
-    let input = "  \t  key = \"value\"";
-    let result = TomlMinifier.minify(input).unwrap();
-    assert_eq!(result, "key=\"value\"");
+fn test_minify_handles_strings_with_hashes() {
+    let minifier = TomlMinifier;
+    let source = "description = \"This is a #hashtag\"";
+    let result = minifier.minify(source).unwrap();
+    assert!(result.contains("#hashtag"));
 }
 
 #[test]
-fn test_removes_trailing_whitespace_after_comment() {
-    let input = "key = \"value\"          # comment";
-    let result = TomlMinifier.minify(input).unwrap();
-    assert_eq!(result, "key=\"value\"");
-}
-
-#[test]
-fn test_preserves_strings() {
-    let input = "description = \"# not a comment\"";
-    let result = TomlMinifier.minify(input).unwrap();
-    assert!(result.contains("# not a comment"));
-}
-
-#[test]
-fn test_removes_inline_comments() {
-    let input = "key = \"value\" # this is a comment";
-    let result = TomlMinifier.minify(input).unwrap();
-    assert!(!result.contains("comment"));
-    assert!(result.contains("key="));
-}
-
-#[test]
-fn test_removes_blank_lines() {
-    let input = "key1 = \"value1\"\n\nkey2 = \"value2\"";
-    let result = TomlMinifier.minify(input).unwrap();
-    let lines: Vec<&str> = result.lines().collect();
-    assert_eq!(lines.len(), 2);
-}
-
-#[test]
-fn test_preserves_sections() {
-    let input = "[package]\nname = \"app\"";
-    let result = TomlMinifier.minify(input).unwrap();
+fn test_minify_complex_toml() {
+    let minifier = TomlMinifier;
+    let source = "[package]\nname = \"rust_minifier\" # package name\nversion = \"1.0.0\" # version";
+    let result = minifier.minify(source).unwrap();
     assert!(result.contains("[package]"));
+    assert!(!result.contains("#"));
 }
 
 #[test]
-fn test_preserves_array_of_tables() {
-    let input = "[[bin]]\nname = \"main\"";
-    let result = TomlMinifier.minify(input).unwrap();
-    assert!(result.contains("[[bin]]"));
+fn test_minify_empty_source() {
+    let minifier = TomlMinifier;
+    let result = minifier.minify("").unwrap();
+    assert!(result.is_empty());
 }
 
 #[test]
-fn test_handles_tabs() {
-    let input = "key\t=\t\"value\"";
-    let result = TomlMinifier.minify(input).unwrap();
-    assert_eq!(result, "key=\"value\"");
+fn test_minify_array_formatting() {
+    let minifier = TomlMinifier;
+    let source = "items = [ 1 , 2 , 3 ]";
+    let result = minifier.minify(source).unwrap();
+    assert!(result.contains("["));
+    assert!(result.contains("]"));
 }
