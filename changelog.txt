@@ -4,6 +4,7 @@
 * after the minified content, adding two EOL (OS `\r\n` or `\n`) - helps when joining multiple files. note that comments are still suitable per-content even if you'll join .rs (//) and .toml(#) together, for holding the file path.
 * include more information while processing files.
 * deterministic order when using `--concat-to` by waiting for all threads to first finish digging though all directories, then writing all toml files first (sorted by their paths naturally) then the rust files (also sorted by their paths naturally). the dig step is still none-deterministic but we wait for all to finish before using one write to the output (keeps all in RAM until then..), the non `--concat-to` is still as before, as a thread finish it writes its own file.
+* adding `--exclude` (can be used multiple times), matches not in case-sensitive way, a part of filename (not extension, not path). a good way to avoid including `tests.rs` in your result.
 
 26.10.15
 * created toml logic minifier which is a lot simpler, line by line, basically comment remover and trim.
