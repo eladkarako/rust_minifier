@@ -2,6 +2,8 @@
 * old `concat_output`+`concat_to_stdout` -> `--concat-to` (default `STDOUT`). writes to path or STDOUT.
 * support directory paths in arguments, it is flatten at runtime, recursive directory-walk discover all `.rs` and `.toml` files. combined with `--concat-to` it can be used to generate a single file at the root of the project of all the minified files with ease (that's the whole point of it).
 * after the minified content, adding two EOL (OS `\r\n` or `\n`) - helps when joining multiple files. note that comments are still suitable per-content even if you'll join .rs (//) and .toml(#) together, for holding the file path.
+* include more information while processing files.
+* deterministic order when using `--concat-to` by waiting for all threads to first finish digging though all directories, then writing all toml files first (sorted by their paths naturally) then the rust files (also sorted by their paths naturally). the dig step is still none-deterministic but we wait for all to finish before using one write to the output (keeps all in RAM until then..), the non `--concat-to` is still as before, as a thread finish it writes its own file.
 
 26.10.15
 * created toml logic minifier which is a lot simpler, line by line, basically comment remover and trim.

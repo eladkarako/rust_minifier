@@ -1,6 +1,7 @@
 use crate::args::Args;
 use crate::metadata::{apply_metadata, capture_metadata};
 use crate::minifier;
+use alphanumeric_sort::compare_str;
 use anyhow::Result;
 use chrono::Local;
 use is_terminal::IsTerminal;
@@ -10,7 +11,39 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
+#[derive(Clone)]
+struct ProcessedFile {
+    file_path: String,
+    file_type: FileType,
+    minified_content: String,
+    // include_file_path is already applied to minified_content, no need to store it
+}
+
+#[derive(Clone, Copy, Eq, PartialEq, Ord, PartialOrd, Debug)]
+enum FileType {
+    Toml,
+    Rust,
+}
+
+impl FileType {
+    fn from_path(path: &str) -> Self {
+        if path.ends_with(".toml") {
+            FileType::Toml
+        } else {
+            FileType::Rust
+        }
+    }
+}
+
 pub async fn process_all(args: &Args) -> Result<()> {
+    // Print arguments
+    eprintln!("━━━ Arguments ━━━");
+    eprintln!("  Files:              {:?}", args.files);
+    eprintln!("  Suffix:             {}", args.suffix);
+    eprintln!("  Concat to:          {}", args.concat_to);
+    eprintln!("  Include file path:  {}", args.include_file_path);
+    eprintln!();
+
     let max_threads = num_cpus::get().saturating_mul(2).max(1);
     let semaphore =
         Arc::new(tokio::sync::Semaphore::new(max_threads));
@@ -18,7 +51,6 @@ pub async fn process_all(args: &Args) -> Result<()> {
     let mut handles = vec![];
     let start_time = std::time::Instant::now();
 
-    // Expand directories into file list
     let mut expanded_files = Vec::new();
     for file_arg in &args.files {
         expand_path(file_arg, &mut expanded_files)?;
@@ -29,16 +61,19 @@ pub async fn process_all(args: &Args) -> Result<()> {
         return Ok(());
     }
 
-    // Determine output extension based on file types
+    // Print expanded files
+    eprintln!("━━━ Found {} Files ━━━", expanded_files.len());
+    for (i, file) in expanded_files.iter().enumerate() {
+        eprintln!("  [{}] {}", i + 1, file);
+    }
+    eprintln!();
+
     let output_extension =
         determine_output_extension(&expanded_files);
-
-    // Prepare concat_to path
     let concat_to_destination = prepare_concat_destination(
         &args.concat_to,
         &output_extension,
     )?;
-
     let suffix = args.suffix.clone();
     let include_file_path = args.include_file_path;
     let num_files = expanded_files.len();
@@ -76,11 +111,51 @@ pub async fn process_all(args: &Args) -> Result<()> {
         handles.push(handle);
     }
 
+    let mut processed_files: Vec<ProcessedFile> = vec![];
     let mut errors = vec![];
+
     for handle in handles {
-        if let Err(e) = handle.await {
-            errors.push(format!("Task error: {}", e));
+        match handle.await {
+            Ok(Ok(Some(pf))) => processed_files.push(pf),
+            Ok(Ok(None)) => {}
+            Ok(Err(e)) => errors.push(e.to_string()),
+            Err(e) => errors.push(format!("Task error: {}", e)),
         }
+    }
+
+    // If concat_to was specified, show sorted order before writing
+    if let Some(ref dest) = concat_to_destination {
+        eprintln!("━━━ Concatenated Output Order ━━━");
+        eprintln!("  Destination: {}", dest);
+        eprintln!();
+
+        // Create sorted copy to show order
+        let mut sorted = processed_files.clone();
+        sorted.sort_by(|a, b| match a.file_type.cmp(&b.file_type) {
+            std::cmp::Ordering::Equal => {
+                alphanumeric_sort::compare_str(
+                    &a.file_path,
+                    &b.file_path,
+                )
+            }
+            other => other,
+        });
+
+        for (i, pf) in sorted.iter().enumerate() {
+            let file_type_str = match pf.file_type {
+                FileType::Toml => "TOML",
+                FileType::Rust => "Rust",
+            };
+            eprintln!(
+                "  [{}] ({}) {}",
+                i + 1,
+                file_type_str,
+                pf.file_path
+            );
+        }
+        eprintln!();
+
+        sort_and_write_concatenated(&processed_files, dest)?;
     }
 
     if !errors.is_empty() {
@@ -91,17 +166,42 @@ pub async fn process_all(args: &Args) -> Result<()> {
     }
 
     let elapsed = start_time.elapsed().as_millis();
-    eprintln!("Total time: {}ms", elapsed);
+    eprintln!("━━━ Summary ━━━");
+    eprintln!("  Total time: {}ms", elapsed);
     Ok(())
 }
 
-/// Recursively expand directories into .rs and .toml files
+fn sort_and_write_concatenated(
+    files: &[ProcessedFile],
+    dest: &str,
+) -> Result<()> {
+    let mut sorted = files.to_vec();
+
+    // Sort: first by file type (Toml before Rust),
+    // then by file path using natural/alphanumeric ordering (UTF-8 aware)
+    sorted.sort_by(|a, b| match a.file_type.cmp(&b.file_type) {
+        std::cmp::Ordering::Equal => {
+            compare_str(&a.file_path, &b.file_path)
+        }
+        other => other,
+    });
+
+    let file = fs::File::create(dest)?;
+    let mut writer = BufWriter::new(file);
+
+    for pf in sorted {
+        writer.write_all(pf.minified_content.as_bytes())?;
+    }
+
+    writer.flush()?;
+    Ok(())
+}
+
 fn expand_path(
     path: &str,
     expanded: &mut Vec<String>,
 ) -> Result<()> {
     let p = Path::new(path);
-
     if p.is_dir() {
         walk_directory(p, expanded)?;
     } else if p.is_file() {
@@ -119,7 +219,6 @@ fn expand_path(
             path
         ));
     }
-
     Ok(())
 }
 
@@ -131,7 +230,6 @@ fn walk_directory(
     for entry in fs::read_dir(dir)? {
         let entry = entry?;
         let path = entry.path();
-
         if path.is_dir() {
             walk_directory(&path, expanded)?;
         } else if path.is_file() {
@@ -152,7 +250,6 @@ fn walk_directory(
 fn determine_output_extension(files: &[String]) -> String {
     let mut has_rs = false;
     let mut has_toml = false;
-
     for file in files {
         let p = Path::new(file);
         let ext = p
@@ -166,7 +263,6 @@ fn determine_output_extension(files: &[String]) -> String {
             has_toml = true;
         }
     }
-
     if has_rs && has_toml {
         "._rs_and_toml.txt".to_string()
     } else if has_rs {
@@ -185,7 +281,6 @@ fn prepare_concat_destination(
     ext: &str,
 ) -> Result<Option<String>> {
     let normalized = concat_to.trim().to_uppercase();
-
     if normalized == "STDOUT" {
         return Ok(None);
     }
@@ -243,7 +338,7 @@ async fn process_single_file<W: io::Write + Send + 'static>(
     concat_to_path: Option<&str>,
     include_file_path: bool,
     stdout: Arc<Mutex<W>>,
-) -> Result<()> {
+) -> Result<Option<ProcessedFile>> {
     let path = Path::new(file_path);
     let file = fs::File::open(path)?;
     let mut reader = BufReader::new(file);
@@ -268,33 +363,30 @@ async fn process_single_file<W: io::Write + Send + 'static>(
         minified
     };
 
-    if let Some(concat_path) = concat_to_path {
-        // Append to file
-        let file = fs::OpenOptions::new()
-            .create(true)
-            .append(true)
-            .open(concat_path)?;
-        let mut writer = BufWriter::new(file);
-        writer.write_all(output.as_bytes())?;
-        writer.flush()?;
-    } else {
-        // Write to stdout
-        let mut stdout_lock = stdout.lock().await;
-        stdout_lock.write_all(output.as_bytes())?;
-        stdout_lock.flush()?;
+    // If concatenating, return the result to be collected and sorted
+    if let Some(_concat_path) = concat_to_path {
+        return Ok(Some(ProcessedFile {
+            file_path: file_path.to_string(),
+            file_type: FileType::from_path(file_path),
+            minified_content: output,
+            // Remove: include_file_path,
+        }));
     }
 
-    // Only apply metadata if writing individual files (not concatenating)
-    if concat_to_path.is_none() {
-        let output_path = get_deduplicated_path(path, suffix)?;
-        let file = fs::File::create(&output_path)?;
-        let mut writer = BufWriter::new(file);
-        writer.write_all(output.as_bytes())?;
-        writer.flush()?;
-        apply_metadata(&output_path, &meta)?;
-    }
+    // Otherwise, write individual minified file
+    let output_path = get_deduplicated_path(path, suffix)?;
+    let file = fs::File::create(&output_path)?;
+    let mut writer = BufWriter::new(file);
+    writer.write_all(output.as_bytes())?;
+    writer.flush()?;
+    apply_metadata(&output_path, &meta)?;
 
-    Ok(())
+    // Write to stdout if no concat_to
+    let mut stdout_lock = stdout.lock().await;
+    stdout_lock.write_all(output.as_bytes())?;
+    stdout_lock.flush()?;
+
+    Ok(None)
 }
 
 fn get_deduplicated_path(
@@ -312,12 +404,11 @@ fn get_deduplicated_path(
         .and_then(|s| s.to_str())
         .unwrap_or("rs");
     let mut output_path = parent.join(format!(
-        "{}{}. {}",
+        "{}{}.{}",
         stem.to_string_lossy(),
         suffix,
         ext
     ));
-
     if output_path.exists() {
         let mut counter = 1;
         loop {
@@ -344,6 +435,7 @@ pub async fn process_stdin(_args: &Args) -> Result<()> {
         );
         return Ok(());
     }
+
     let mut reader = BufReader::new(io::stdin().lock());
     let mut buffer = Vec::new();
     reader.read_to_end(&mut buffer)?;
