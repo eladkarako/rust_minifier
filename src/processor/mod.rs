@@ -35,6 +35,16 @@ impl FileType {
     }
 }
 
+fn should_exclude_file(file_path:&str,exclude_patterns:&[String])->bool{
+    let file_name=Path::new(file_path).file_name().and_then(|n|n.to_str()).unwrap_or("").to_lowercase();
+    for pattern in exclude_patterns{
+        if file_name.contains(&pattern.to_lowercase()){
+            return true;
+        }
+    }
+    false
+}
+
 pub async fn process_all(args: &Args) -> Result<()> {
     // Print arguments
     eprintln!("━━━ Arguments ━━━");
@@ -53,7 +63,7 @@ pub async fn process_all(args: &Args) -> Result<()> {
 
     let mut expanded_files = Vec::new();
     for file_arg in &args.files {
-        expand_path(file_arg, &mut expanded_files)?;
+        expand_path(file_arg, &mut expanded_files,&args.exclude)?;
     }
 
     if expanded_files.is_empty() {
@@ -200,17 +210,18 @@ fn sort_and_write_concatenated(
 fn expand_path(
     path: &str,
     expanded: &mut Vec<String>,
+    exclude_patterns:&[String]
 ) -> Result<()> {
     let p = Path::new(path);
     if p.is_dir() {
-        walk_directory(p, expanded)?;
+        walk_directory(p, expanded, exclude_patterns)?;
     } else if p.is_file() {
         let ext = p
             .extension()
             .and_then(|s| s.to_str())
             .unwrap_or("")
             .to_lowercase();
-        if ext == "rs" || ext == "toml" {
+        if (ext == "rs" || ext == "toml")&&!should_exclude_file(path,exclude_patterns) {
             expanded.push(path.to_string());
         }
     } else {
@@ -226,19 +237,21 @@ fn expand_path(
 fn walk_directory(
     dir: &Path,
     expanded: &mut Vec<String>,
+    exclude_patterns:&[String]
 ) -> Result<()> {
     for entry in fs::read_dir(dir)? {
         let entry = entry?;
         let path = entry.path();
         if path.is_dir() {
-            walk_directory(&path, expanded)?;
+            walk_directory(&path, expanded, exclude_patterns)?;
         } else if path.is_file() {
             let ext = path
                 .extension()
                 .and_then(|s| s.to_str())
                 .unwrap_or("")
                 .to_lowercase();
-            if ext == "rs" || ext == "toml" {
+            let path_str=path.to_string_lossy().to_string();
+            if (ext == "rs" || ext == "toml")&&!should_exclude_file(&path_str,exclude_patterns) {
                 expanded.push(path.to_string_lossy().to_string());
             }
         }
