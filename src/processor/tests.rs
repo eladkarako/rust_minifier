@@ -41,7 +41,8 @@ fn test_expand_path_single_rust_file() {
     fs::write(&test_file, "fn main() {}").unwrap();
 
     let mut expanded = Vec::new();
-    expand_path(test_file.to_str().unwrap(), &mut expanded, &[]).unwrap();
+    expand_path(test_file.to_str().unwrap(), &mut expanded, &[])
+        .unwrap();
 
     assert_eq!(expanded.len(), 1);
     assert!(expanded[0].ends_with(".rs"));
@@ -55,7 +56,8 @@ fn test_expand_path_single_toml_file() {
     fs::write(&test_file, "[package]\n").unwrap();
 
     let mut expanded = Vec::new();
-    expand_path(test_file.to_str().unwrap(), &mut expanded, &[]).unwrap();
+    expand_path(test_file.to_str().unwrap(), &mut expanded, &[])
+        .unwrap();
 
     assert_eq!(expanded.len(), 1);
     assert!(expanded[0].ends_with(".toml"));
@@ -65,7 +67,8 @@ fn test_expand_path_single_toml_file() {
 #[test]
 fn test_expand_path_nonexistent_file() {
     let mut expanded = Vec::new();
-    let result = expand_path("/nonexistent/file.rs", &mut expanded, &[]);
+    let result =
+        expand_path("/nonexistent/file.rs", &mut expanded, &[]);
     assert!(result.is_err());
 }
 
@@ -73,11 +76,18 @@ fn test_expand_path_nonexistent_file() {
 #[test]
 fn test_expand_path_directory() {
     let temp_dir = TempDir::new().unwrap();
-    fs::write(temp_dir.path().join("main.rs"), "fn main() {}").unwrap();
-    fs::write(temp_dir.path().join("lib.rs"), "pub fn test() {}").unwrap();
+    fs::write(temp_dir.path().join("main.rs"), "fn main() {}")
+        .unwrap();
+    fs::write(temp_dir.path().join("lib.rs"), "pub fn test() {}")
+        .unwrap();
 
     let mut expanded = Vec::new();
-    expand_path(temp_dir.path().to_str().unwrap(), &mut expanded, &[]).unwrap();
+    expand_path(
+        temp_dir.path().to_str().unwrap(),
+        &mut expanded,
+        &[],
+    )
+        .unwrap();
 
     assert_eq!(expanded.len(), 2);
 }
@@ -106,7 +116,11 @@ fn test_should_exclude_file_case_insensitive() {
 /// Test should_exclude_file with multiple patterns.
 #[test]
 fn test_should_exclude_file_multiple_patterns() {
-    let patterns = vec!["test".to_string(), "mock".to_string(), "temp".to_string()];
+    let patterns = vec![
+        "test".to_string(),
+        "mock".to_string(),
+        "temp".to_string(),
+    ];
     assert!(should_exclude_file("mock_data.rs", &patterns));
     assert!(should_exclude_file("temp_file.rs", &patterns));
     assert!(!should_exclude_file("main.rs", &patterns));
@@ -132,12 +146,19 @@ fn test_should_exclude_file_filename_only() {
 #[test]
 fn test_expand_path_with_exclude() {
     let temp_dir = TempDir::new().unwrap();
-    fs::write(temp_dir.path().join("main.rs"), "fn main() {}").unwrap();
-    fs::write(temp_dir.path().join("test.rs"), "fn test() {}").unwrap();
+    fs::write(temp_dir.path().join("main.rs"), "fn main() {}")
+        .unwrap();
+    fs::write(temp_dir.path().join("test.rs"), "fn test() {}")
+        .unwrap();
 
     let mut expanded = Vec::new();
     let patterns = vec!["test".to_string()];
-    expand_path(temp_dir.path().to_str().unwrap(), &mut expanded, &patterns).unwrap();
+    expand_path(
+        temp_dir.path().to_str().unwrap(),
+        &mut expanded,
+        &patterns,
+    )
+        .unwrap();
 
     assert_eq!(expanded.len(), 1);
     assert!(expanded[0].ends_with("main.rs"));
@@ -162,7 +183,8 @@ fn test_determine_output_extension_toml_only() {
 /// Test determine_output_extension for mixed file types.
 #[test]
 fn test_determine_output_extension_mixed() {
-    let files = vec!["main.rs".to_string(), "Cargo.toml".to_string()];
+    let files =
+        vec!["main.rs".to_string(), "Cargo.toml".to_string()];
     let ext = determine_output_extension(&files);
     assert_eq!(ext, "._rs_and_toml.txt");
 }
@@ -195,17 +217,20 @@ fn test_format_path_for_output_normal() {
 /// Test prepare_concat_destination with STDOUT.
 #[test]
 fn test_prepare_concat_destination_stdout() {
-    let result = prepare_concat_destination("STDOUT", ".rs").unwrap();
+    let result =
+        prepare_concat_destination("STDOUT", ".rs").unwrap();
     assert!(result.is_none());
 }
 
 /// Test prepare_concat_destination with uppercase STDOUT.
 #[test]
 fn test_prepare_concat_destination_stdout_uppercase() {
-    let result = prepare_concat_destination("STDOUT", ".rs").unwrap();
+    let result =
+        prepare_concat_destination("STDOUT", ".rs").unwrap();
     assert!(result.is_none());
 
-    let result = prepare_concat_destination("stdout", ".rs").unwrap();
+    let result =
+        prepare_concat_destination("stdout", ".rs").unwrap();
     assert!(result.is_none());
 }
 
@@ -214,7 +239,11 @@ fn test_prepare_concat_destination_stdout_uppercase() {
 fn test_prepare_concat_destination_file_path() {
     let temp_dir = TempDir::new().unwrap();
     let dest_path = temp_dir.path().join("output.txt");
-    let result = prepare_concat_destination(dest_path.to_str().unwrap(), ".rs").unwrap();
+    let result = prepare_concat_destination(
+        dest_path.to_str().unwrap(),
+        ".rs",
+    )
+        .unwrap();
     assert!(result.is_some());
 }
 
@@ -222,7 +251,11 @@ fn test_prepare_concat_destination_file_path() {
 #[test]
 fn test_prepare_concat_destination_directory() {
     let temp_dir = TempDir::new().unwrap();
-    let result = prepare_concat_destination(temp_dir.path().to_str().unwrap(), ".rs").unwrap();
+    let result = prepare_concat_destination(
+        temp_dir.path().to_str().unwrap(),
+        ".rs",
+    )
+        .unwrap();
     assert!(result.is_some());
 }
 
@@ -230,8 +263,10 @@ fn test_prepare_concat_destination_directory() {
 #[test]
 fn test_prepare_concat_destination_trailing_slash() {
     let temp_dir = TempDir::new().unwrap();
-    let path_with_slash = format!("{}/", temp_dir.path().to_string_lossy());
-    let result = prepare_concat_destination(&path_with_slash, ".rs").unwrap();
+    let path_with_slash =
+        format!("{}/", temp_dir.path().to_string_lossy());
+    let result =
+        prepare_concat_destination(&path_with_slash, ".rs").unwrap();
     assert!(result.is_some());
 }
 

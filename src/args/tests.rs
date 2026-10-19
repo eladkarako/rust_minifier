@@ -83,7 +83,11 @@ fn test_args_exclude_multiple_patterns() {
         suffix: "_minified".to_string(),
         concat_to: "STDOUT".to_string(),
         include_file_path: true,
-        exclude: vec!["test".to_string(), "mock".to_string(), "temp".to_string()],
+        exclude: vec![
+            "test".to_string(),
+            "mock".to_string(),
+            "temp".to_string(),
+        ],
     };
 
     assert_eq!(args.exclude.len(), 3);
@@ -95,7 +99,11 @@ fn test_args_exclude_multiple_patterns() {
 #[test]
 fn test_args_multiple_files() {
     let args = Args {
-        files: vec!["main.rs".to_string(), "lib.rs".to_string(), "Cargo.toml".to_string()],
+        files: vec![
+            "main.rs".to_string(),
+            "lib.rs".to_string(),
+            "Cargo.toml".to_string(),
+        ],
         suffix: "_min".to_string(),
         concat_to: "STDOUT".to_string(),
         include_file_path: true,

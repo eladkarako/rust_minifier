@@ -23,7 +23,6 @@ pub struct Args {
     #[arg(short, long, default_value = "_minified")]
     pub suffix: String,
 
-
     /// Destination for concatenated output.
     ///
     /// Can be A file path (writes minified content to that file), a directory path (creates a timestamped file in that directory), `STDOUT` (or empty - prints to standard output, default).
@@ -42,7 +41,6 @@ pub struct Args {
     /// Useful for tracking which source files contributed to concatenated output.
     #[arg(long, default_value = "true")]
     pub include_file_path: bool,
-
 
     /// Exclude files matching these patterns (non-case-sensitive substring match on filename).
     ///
