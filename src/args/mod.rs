@@ -4,7 +4,7 @@ use clap::Parser;
 #[command(name = env!("CARGO_PKG_NAME"))]
 #[command(version = env!("CARGO_PKG_VERSION"))]
 #[command(author = env!("CARGO_PKG_AUTHORS"))]
-#[command(about=env!("CARGO_PKG_DESCRIPTION"),long_about=None)]
+#[command(about = env!("CARGO_PKG_DESCRIPTION"), long_about = None)]
 #[command(
     after_help = concat!("Repository:    ", env!("CARGO_PKG_REPOSITORY"), "\n", "Homepage:      ", env!("CARGO_PKG_HOMEPAGE"))
 )]
@@ -52,6 +52,10 @@ pub struct Args {
     /// will exclude files like: `test_helper.rs`, `mock_data.toml`, `my_test.rs`
     #[arg(long)]
     pub exclude: Vec<String>,
+
+    /// Try to limit maximum number of characters per file in --concat-to result, by generating multiple files each with a '_part_XX_of_YY' suffix.
+    #[arg(long, default_value = "unlimited")]
+    pub soft_split: String,
 }
 
 impl Args {

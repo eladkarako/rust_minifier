@@ -1,3 +1,6 @@
+26.10.26
++ adding `--soft-split` (for `--concat-to`) which tries to re-distribute the content of single output file. it only re-distribute minified-files, not breaking their content. limit is set to number of characters assuming utf8.
+
 26.10.19
 * old `concat_output`+`concat_to_stdout` -> `--concat-to` (default `STDOUT`). writes to path or STDOUT.
 * support directory paths in arguments, it is flatten at runtime, recursive directory-walk discover all `.rs` and `.toml` files. combined with `--concat-to` it can be used to generate a single file at the root of the project of all the minified files with ease (that's the whole point of it).

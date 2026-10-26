@@ -52,6 +52,59 @@ fn should_exclude_file(
     false
 }
 
+fn parse_soft_split(soft_split: &str) -> Result<Option<usize>> {
+    let normalized = soft_split.trim().to_lowercase();
+    if normalized == "unlimited" || normalized.is_empty() {
+        Ok(None)
+    } else {
+        normalized
+            .parse::<usize>()
+            .map(Some)
+            .map_err(|_| anyhow::anyhow!("Invalid soft_split value: {}. Use 'unlimited' or a positive number.", soft_split))
+    }
+}
+
+fn soft_split_content(
+    content: &str,
+    max_chars: usize,
+) -> Vec<String> {
+    if content.len() <= max_chars {
+        return vec![content.to_string()];
+    }
+
+    // Split by the minified file separator (3 newlines)
+    let chunks: Vec<&str> = content.split(SEPARATOR).collect();
+
+    let mut parts = Vec::new();
+    let mut current_part = String::new();
+
+    for (idx, chunk) in chunks.iter().enumerate() {
+        let chunk_with_sep = if idx == 0 {
+            chunk.to_string()
+        } else {
+            format!("{}{}", SEPARATOR, chunk)
+        };
+
+        if current_part.is_empty() {
+            current_part.push_str(&chunk_with_sep);
+        } else if (current_part.len() + chunk_with_sep.len())
+            <= max_chars
+        {
+            current_part.push_str(&chunk_with_sep);
+        } else {
+            // Would exceed limit, save current and start new
+            parts.push(current_part);
+            current_part = chunk_with_sep;
+        }
+    }
+
+    if !current_part.is_empty() {
+        parts.push(current_part);
+    }
+
+    parts
+}
+
 pub async fn process_all(args: &Args) -> Result<()> {
     // Print arguments
     eprintln!("━━━ Arguments ━━━");
@@ -59,7 +112,10 @@ pub async fn process_all(args: &Args) -> Result<()> {
     eprintln!("  Suffix:             {}", args.suffix);
     eprintln!("  Concat to:          {}", args.concat_to);
     eprintln!("  Include file path:  {}", args.include_file_path);
+    eprintln!("  Soft split:         {}", args.soft_split);
     eprintln!();
+
+    let soft_split_limit = parse_soft_split(&args.soft_split)?;
 
     let max_threads = num_cpus::get().saturating_mul(2).max(1);
     let semaphore =
@@ -111,6 +167,7 @@ pub async fn process_all(args: &Args) -> Result<()> {
                     &suffix,
                     concat_to_dest.as_deref(),
                     include_file_path,
+                    soft_split_limit,
                     stdout,
                 )
                     .await;
@@ -345,8 +402,13 @@ fn prepare_concat_destination(
 
 #[cfg(target_os = "windows")]
 const EOL: &str = "\r\n";
+#[cfg(target_os = "windows")]
+const SEPARATOR: &str = "\r\n\r\n\r\n";
+
 #[cfg(not(target_os = "windows"))]
 const EOL: &str = "\n";
+#[cfg(not(target_os = "windows"))]
+const SEPARATOR: &str = "\n\n\n";
 
 fn format_path_for_output(path: &str) -> String {
     if path.starts_with("\\\\?\\") {
@@ -361,6 +423,7 @@ async fn process_single_file<W: io::Write + Send + 'static>(
     suffix: &str,
     concat_to_path: Option<&str>,
     include_file_path: bool,
+    soft_split_limit: Option<usize>,
     stdout: Arc<Mutex<W>>,
 ) -> Result<Option<ProcessedFile>> {
     let path = Path::new(file_path);
@@ -368,6 +431,7 @@ async fn process_single_file<W: io::Write + Send + 'static>(
     let mut reader = BufReader::new(file);
     let mut buffer = Vec::new();
     reader.read_to_end(&mut buffer)?;
+
     let source = String::from_utf8(buffer)?;
     let meta = capture_metadata(path)?;
     let minified = minifier::minify(&source, path)?;
@@ -380,8 +444,8 @@ async fn process_single_file<W: io::Write + Send + 'static>(
         let comment_char =
             if file_path.ends_with(".toml") { "#" } else { "//" };
         format!(
-            "{} {}{}{}{}{}",
-            comment_char, formatted_path, EOL, minified, EOL, EOL
+            "{} {}{}{}{}",
+            comment_char, formatted_path, EOL, minified, SEPARATOR
         )
     } else {
         minified
@@ -393,22 +457,48 @@ async fn process_single_file<W: io::Write + Send + 'static>(
             file_path: file_path.to_string(),
             file_type: FileType::from_path(file_path),
             minified_content: output,
-            // Remove: include_file_path,
         }));
     }
 
-    // Otherwise, write individual minified file
-    let output_path = get_deduplicated_path(path, suffix)?;
-    let file = fs::File::create(&output_path)?;
-    let mut writer = BufWriter::new(file);
-    writer.write_all(output.as_bytes())?;
-    writer.flush()?;
-    apply_metadata(&output_path, &meta)?;
+    let parts = if let Some(limit) = soft_split_limit {
+        soft_split_content(&output, limit)
+    } else {
+        vec![output]
+    };
 
-    // Write to stdout if no concat_to
-    let mut stdout_lock = stdout.lock().await;
-    stdout_lock.write_all(output.as_bytes())?;
-    stdout_lock.flush()?;
+    if parts.len() == 1 {
+        let output_path = get_deduplicated_path(path, suffix)?;
+        let file = fs::File::create(&output_path)?;
+        let mut writer = BufWriter::new(file);
+        writer.write_all(parts[0].as_bytes())?;
+        writer.flush()?;
+        apply_metadata(&output_path, &meta)?;
+
+        let mut stdout_lock = stdout.lock().await;
+        stdout_lock.write_all(parts[0].as_bytes())?;
+        stdout_lock.flush()?;
+    } else {
+        let total_parts = parts.len();
+        for (idx, part) in parts.iter().enumerate() {
+            let part_num = idx + 1;
+            let part_suffix = format!(
+                "{}_part_{:02}_{:02}",
+                suffix, part_num, total_parts
+            );
+            let output_path =
+                get_deduplicated_path(path, &part_suffix)?;
+            let file = fs::File::create(&output_path)?;
+            let mut writer = BufWriter::new(file);
+            writer.write_all(part.as_bytes())?;
+            writer.flush()?;
+            apply_metadata(&output_path, &meta)?;
+
+            // Write to stdout if no concat_to
+            let mut stdout_lock = stdout.lock().await;
+            stdout_lock.write_all(part.as_bytes())?;
+            stdout_lock.flush()?;
+        }
+    }
 
     Ok(None)
 }
@@ -427,12 +517,14 @@ fn get_deduplicated_path(
         .extension()
         .and_then(|s| s.to_str())
         .unwrap_or("rs");
+
     let mut output_path = parent.join(format!(
         "{}{}.{}",
         stem.to_string_lossy(),
         suffix,
         ext
     ));
+
     if output_path.exists() {
         let mut counter = 1;
         loop {
@@ -449,6 +541,7 @@ fn get_deduplicated_path(
             counter += 1;
         }
     }
+
     Ok(output_path)
 }
 
@@ -463,13 +556,16 @@ pub async fn process_stdin(_args: &Args) -> Result<()> {
     let mut reader = BufReader::new(io::stdin().lock());
     let mut buffer = Vec::new();
     reader.read_to_end(&mut buffer)?;
+
     let source = String::from_utf8(buffer)?;
     let dummy_path = Path::new("dummy.rs");
     let minified = minifier::minify(&source, dummy_path)?;
+
     let stdout = io::stdout();
     let mut writer = BufWriter::new(stdout.lock());
     writer.write_all(minified.as_bytes())?;
     writer.flush()?;
+
     Ok(())
 }
 
