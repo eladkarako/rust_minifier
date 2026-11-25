@@ -211,6 +211,10 @@ pub static PASCAL: CLikeProfile = CLikeProfile {
     ..C_STYLE_BASE
 };
 
+pub static AIDL: CLikeProfile = CLikeProfile {
+    ..C_STYLE_BASE
+};
+
 pub static CRYSTAL: CLikeProfile = CLikeProfile {
     line_comments: &["#"],
     statement_separator: StatementSeparator::Semicolon,
@@ -304,6 +308,7 @@ pub fn profile_for(language_id: &str) -> Option<&'static CLikeProfile> {
         "clojure" => Some(&CLOJURE),
         "ocaml" => Some(&OCAML),
         "pascal" => Some(&PASCAL),
+        "aidl" => Some(&AIDL),
         "crystal" => Some(&CRYSTAL),
         "solidity" => Some(&SOLIDITY),
         "cuda" => Some(&CUDA),

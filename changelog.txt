@@ -1,4 +1,5 @@
 26.11.24
++ wired the language registry into the public dispatcher (`src/minifier/mod.rs`). `get_minifier`, `minify` and `minify_with_options` now select an engine for every registered language, and `minify_with_language` accepts an already detected language. Added 17 dispatch tests.
 + added a PHP mixed minifier (`src/minifier/php/`) that minifies HTML around and code inside `<?php ?>`/`<?= ?>` blocks, keeps whitespace around inline blocks, and protects `?>` inside strings. PHP 8 `#[...]` attributes are preserved. Added 15 unit tests.
 + added a SQL minifier (`src/minifier/sql/`) handling `--`/`#`/`/* */` comments, single/double/backtick/bracket quoted values and PostgreSQL dollar quotes. Added 21 unit tests.
 + added a GraphQL minifier (`src/minifier/graphql/`) handling `#` comments and block strings. Added 15 unit tests.

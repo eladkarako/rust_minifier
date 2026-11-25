@@ -554,7 +554,26 @@ fn find_frontmatter_end(chars: &[char]) -> Option<usize> {
     None
 }
 
-fn token_is_inline(token: &Token) -> bool {
+fn is_html_family(language: &str) -> bool {
+    matches!(
+        language,
+        "html"
+            | "svg"
+            | "vue"
+            | "svelte"
+            | "astro"
+            | "razor"
+            | "jsp"
+            | "twig"
+            | "handlebars"
+            | "ejs"
+    )
+}
+
+fn token_is_inline(token: &Token, inline_aware: bool) -> bool {
+    if !inline_aware {
+        return false;
+    }
     match token {
         Token::Tag { name, .. } => is_inline_element(name),
         Token::Opaque(_) | Token::Text(_) => true,
@@ -595,7 +614,7 @@ fn normalize_text(
     output
 }
 
-fn reconstruct(tokens: &[Token]) -> String {
+fn reconstruct(tokens: &[Token], inline_aware: bool) -> String {
     let mut output = String::new();
     for (index, token) in tokens.iter().enumerate() {
         match token {
@@ -605,11 +624,13 @@ fn reconstruct(tokens: &[Token]) -> String {
                 let previous_inline = index
                     .checked_sub(1)
                     .is_some_and(|previous| {
-                        token_is_inline(&tokens[previous])
+                        token_is_inline(&tokens[previous], inline_aware)
                     });
                 let next_inline = tokens
                     .get(index + 1)
-                    .is_some_and(token_is_inline);
+                    .is_some_and(|next| {
+                        token_is_inline(next, inline_aware)
+                    });
                 let piece =
                     normalize_text(text, previous_inline, next_inline);
                 if piece.is_empty() {
@@ -761,7 +782,7 @@ pub fn minify_markup(
         tokens.push(Token::Text(text));
     }
 
-    reconstruct(&tokens)
+    reconstruct(&tokens, is_html_family(language))
 }
 
 #[cfg(test)]
