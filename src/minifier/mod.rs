@@ -9,6 +9,7 @@ pub mod language;
 pub mod line_based;
 pub mod markup;
 pub mod options;
+pub mod php;
 pub mod rust;
 pub mod sql;
 pub mod toml;

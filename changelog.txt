@@ -1,4 +1,5 @@
 26.11.24
++ added a PHP mixed minifier (`src/minifier/php/`) that minifies HTML around and code inside `<?php ?>`/`<?= ?>` blocks, keeps whitespace around inline blocks, and protects `?>` inside strings. PHP 8 `#[...]` attributes are preserved. Added 15 unit tests.
 + added a SQL minifier (`src/minifier/sql/`) handling `--`/`#`/`/* */` comments, single/double/backtick/bracket quoted values and PostgreSQL dollar quotes. Added 21 unit tests.
 + added a GraphQL minifier (`src/minifier/graphql/`) handling `#` comments and block strings. Added 15 unit tests.
 + added a line preserving minifier (`src/minifier/line_based/`) for YAML, shell, PowerShell, batch, INI/properties/.env, Makefile, Dockerfile, CMake, HCL, Nix, Just, Ninja, ignore files, ProGuard, Smali, PO, WAT, Prisma, Ruby, Perl, R, Julia, Haskell, Fortran, Tcl, AWK, Vim, Nim and assembly. It removes comments first, trims trailing whitespace and blank lines, keeps indentation, and preserves heredocs, YAML block scalars and shebangs verbatim. Added 29 unit tests.

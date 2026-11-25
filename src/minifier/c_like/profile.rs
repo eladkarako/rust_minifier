@@ -149,6 +149,7 @@ pub static DART: CLikeProfile = CLikeProfile {
 
 pub static PHP: CLikeProfile = CLikeProfile {
     line_comments: &["//", "#"],
+    identifier_extra_chars: "$",
     ..C_STYLE_BASE
 };
 

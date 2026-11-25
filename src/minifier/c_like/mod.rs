@@ -132,6 +132,11 @@ impl<'a> Lexer<'a> {
         }
         for marker in self.profile.line_comments {
             if self.starts_with(marker) {
+                // PHP 8 attributes start with `#[`; they are code, not a
+                // `#` comment.
+                if *marker == "#" && self.peek_at(1) == Some('[') {
+                    continue;
+                }
                 self.consume_line_comment();
                 return Some(false);
             }
