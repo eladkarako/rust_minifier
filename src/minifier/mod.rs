@@ -3,12 +3,14 @@ use std::path::Path;
 
 pub mod c_like;
 pub mod css;
+pub mod graphql;
 pub mod json;
 pub mod language;
 pub mod line_based;
 pub mod markup;
 pub mod options;
 pub mod rust;
+pub mod sql;
 pub mod toml;
 
 pub use options::MinifierOptions;
