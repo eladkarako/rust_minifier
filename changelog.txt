@@ -1,3 +1,7 @@
+26.11.24
++ added a data-driven language registry (`src/minifier/language.rs`) with support detection by extension, exact file name and file name prefix, plus source sniffing for ambiguous `.config`, `.m`, `.inc` and `.lock` files. This is the foundation for the new file types; the old Rust/TOML paths still behave as before.
++ added unit tests for the registry.
+
 26.10.26
 + adding `--soft-split` (for `--concat-to`) which tries to re-distribute the content of single output file. it only re-distribute minified-files, not breaking their content. limit is set to number of characters assuming utf8.
 
