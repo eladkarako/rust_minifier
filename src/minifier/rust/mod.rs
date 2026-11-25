@@ -1,4 +1,5 @@
 use super::Minifier;
+use super::MinifierOptions;
 use anyhow::Result;
 use proc_macro2::TokenStream;
 use proc_macro2::TokenTree;
@@ -9,6 +10,7 @@ impl Minifier for RustMinifier {
     fn minify(
         &self,
         source: &str,
+        _options: &MinifierOptions,
     ) -> Result<String> {
         let trimmed = source.trim();
         if trimmed.is_empty() {

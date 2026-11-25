@@ -1,4 +1,7 @@
 26.11.24
++ added a configurable C-like lexer/minifier (`src/minifier/c_like/`) with per-language profiles for JavaScript/TypeScript/JSX/TSX, Java, Kotlin, Groovy/Gradle, Scala, C, C++, C#, Objective-C, Go, Swift, Dart, PHP, Lua, Proto, Thrift, FlatBuffers, Avro, Elixir, Erlang, Clojure, OCaml, Pascal, Crystal, Solidity, CUDA, Verilog, VHDL, GLSL, OpenCL, QML, `.strings`, Zig and D. Comments are removed first; strings, regex literals, raw/verbatim/triple/long-bracket literals are protected. JavaScript-like languages get safe automatic semicolon insertion at newlines.
++ added `MinifierOptions` with a `preserve_line_breaks` override and added `minify_with_options`.
++ added 27 unit tests for the C-like engine.
 + added a data-driven language registry (`src/minifier/language.rs`) with support detection by extension, exact file name and file name prefix, plus source sniffing for ambiguous `.config`, `.m`, `.inc` and `.lock` files. This is the foundation for the new file types; the old Rust/TOML paths still behave as before.
 + added unit tests for the registry.
 

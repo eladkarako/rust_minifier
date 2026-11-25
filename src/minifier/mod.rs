@@ -1,10 +1,13 @@
 use anyhow::Result;
 use std::path::Path;
 
+pub mod c_like;
 pub mod language;
+pub mod options;
 pub mod rust;
 pub mod toml;
 
+pub use options::MinifierOptions;
 use rust::RustMinifier;
 use toml::TomlMinifier;
 
@@ -13,6 +16,7 @@ pub trait Minifier {
     fn minify(
         &self,
         source: &str,
+        options: &MinifierOptions,
     ) -> Result<String>;
 }
 
@@ -39,6 +43,15 @@ pub fn minify(
     source: &str,
     path: &Path,
 ) -> Result<String> {
+    minify_with_options(source, path, &MinifierOptions::default())
+}
+
+/// Public minify function with explicit options.
+pub fn minify_with_options(
+    source: &str,
+    path: &Path,
+    options: &MinifierOptions,
+) -> Result<String> {
     let minifier = get_minifier(path)?;
-    minifier.minify(source)
+    minifier.minify(source, options)
 }

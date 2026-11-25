@@ -36,7 +36,7 @@ fn test_preserve_strings_with_comments() {
 fn test_minify_basic_function() {
     let minifier = RustMinifier;
     let source = "fn main() { println!(\"hello\"); }";
-    let result = minifier.minify(source).unwrap();
+    let result = minifier.minify(source, &MinifierOptions::default()).unwrap();
     assert_eq!(result.contains("println"), true);
     assert!(result.len() <= source.len());
 }
@@ -44,7 +44,7 @@ fn test_minify_basic_function() {
 #[test]
 fn test_minify_empty_source() {
     let minifier = RustMinifier;
-    let result = minifier.minify("").unwrap();
+    let result = minifier.minify("", &MinifierOptions::default()).unwrap();
     assert!(result.is_empty());
 }
 
@@ -52,6 +52,6 @@ fn test_minify_empty_source() {
 fn test_minify_preserves_raw_strings() {
     let minifier = RustMinifier;
     let source = r#"let s = r"raw // string";"#;
-    let result = minifier.minify(source).unwrap();
+    let result = minifier.minify(source, &MinifierOptions::default()).unwrap();
     assert!(result.contains("raw"));
 }

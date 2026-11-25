@@ -1,4 +1,5 @@
 use super::Minifier;
+use super::MinifierOptions;
 use anyhow::Result;
 
 pub struct TomlMinifier;
@@ -7,6 +8,7 @@ impl Minifier for TomlMinifier {
     fn minify(
         &self,
         source: &str,
+        _options: &MinifierOptions,
     ) -> Result<String> {
         let mut result = String::new();
 
