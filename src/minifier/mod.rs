@@ -5,6 +5,7 @@ pub mod c_like;
 pub mod css;
 pub mod json;
 pub mod language;
+pub mod markup;
 pub mod options;
 pub mod rust;
 pub mod toml;
