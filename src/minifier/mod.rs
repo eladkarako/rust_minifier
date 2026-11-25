@@ -2,6 +2,7 @@ use anyhow::Result;
 use std::path::Path;
 
 pub mod c_like;
+pub mod css;
 pub mod language;
 pub mod options;
 pub mod rust;
