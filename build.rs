@@ -4,14 +4,17 @@ fn main() {
 }
 
 #[cfg(target_os = "windows")]
-use std::{env, path::PathBuf};
+use std::{
+    env,
+    path::{Path, PathBuf},
+};
 
 #[cfg(target_os = "windows")]
 use winres::WindowsResource;
 
 /// Loads and parses the Cargo.toml file
 #[cfg(target_os = "windows")]
-fn load_cargo_toml(manifest_dir: &PathBuf) -> toml::Value {
+fn load_cargo_toml(manifest_dir: &Path) -> toml::Value {
     let cargo_toml_path = manifest_dir.join("Cargo.toml");
     let content = std::fs::read_to_string(&cargo_toml_path)
         .expect("Failed to read Cargo.toml");
@@ -44,14 +47,22 @@ fn get_first_author(package: &toml::Value) -> &str {
 fn parse_version(version: &str) -> (u64, u64, u64, u64) {
     let parts: Vec<&str> = version.split('.').collect();
 
-    let major =
-        parts.get(0).and_then(|v| v.parse().ok()).unwrap_or(0);
-    let minor =
-        parts.get(1).and_then(|v| v.parse().ok()).unwrap_or(0);
-    let patch =
-        parts.get(2).and_then(|v| v.parse().ok()).unwrap_or(0);
-    let release =
-        parts.get(3).and_then(|v| v.parse().ok()).unwrap_or(0);
+    let major = parts
+        .first()
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(0);
+    let minor = parts
+        .get(1)
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(0);
+    let patch = parts
+        .get(2)
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(0);
+    let release = parts
+        .get(3)
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(0);
 
     (major, minor, patch, release)
 }
@@ -71,21 +82,22 @@ fn pack_version(
 /// Configures and compiles Windows resource information
 #[cfg(target_os = "windows")]
 fn set_windows_resources(
-    manifest_dir: &PathBuf,
+    manifest_dir: &Path,
     name: &str,
     description: &str,
     repository: &str,
     author: &str,
-    major: u64,
-    minor: u64,
-    patch: u64,
-    release: u64,
+    version: (u64, u64, u64, u64),
     packed: u64,
 ) {
-    let path_icon =
-        manifest_dir.join("resources").join("logos").join("app.ico");
-    let path_manifest =
-        manifest_dir.join("resources").join("app.manifest");
+    let (major, minor, patch, release) = version;
+    let path_icon = manifest_dir
+        .join("resources")
+        .join("logos")
+        .join("app.ico");
+    let path_manifest = manifest_dir
+        .join("resources")
+        .join("app.manifest");
 
     let mut res = WindowsResource::new();
     res.set_icon(path_icon.to_string_lossy().as_ref());
@@ -117,7 +129,8 @@ fn set_windows_resources(
         packed,
     );
 
-    res.compile().expect("Failed to compile Windows resources");
+    res.compile()
+       .expect("Failed to compile Windows resources");
 }
 
 #[cfg(target_os = "windows")]
@@ -135,8 +148,13 @@ fn main() {
     let repository = get_string(package, "repository", "");
     let author = get_first_author(package);
 
-    let (major, minor, patch, release) = parse_version(version);
-    let packed = pack_version(major, minor, patch, release);
+    let version_parts = parse_version(version);
+    let packed = pack_version(
+        version_parts.0,
+        version_parts.1,
+        version_parts.2,
+        version_parts.3,
+    );
 
     set_windows_resources(
         &manifest_dir,
@@ -144,10 +162,7 @@ fn main() {
         description,
         repository,
         author,
-        major,
-        minor,
-        patch,
-        release,
+        version_parts,
         packed,
     );
 }
