@@ -45,7 +45,12 @@ fn test_expand_path_single_rust_file() {
     fs::write(&test_file, "fn main() {}").unwrap();
 
     let mut expanded = Vec::new();
-    expand_path(test_file.to_str().unwrap(), &mut expanded, &[])
+    expand_path(
+        test_file.to_str().unwrap(),
+        &mut expanded,
+        &[],
+        false,
+    )
         .unwrap();
 
     assert_eq!(expanded.len(), 1);
@@ -60,7 +65,12 @@ fn test_expand_path_single_toml_file() {
     fs::write(&test_file, "[package]\n").unwrap();
 
     let mut expanded = Vec::new();
-    expand_path(test_file.to_str().unwrap(), &mut expanded, &[])
+    expand_path(
+        test_file.to_str().unwrap(),
+        &mut expanded,
+        &[],
+        false,
+    )
         .unwrap();
 
     assert_eq!(expanded.len(), 1);
@@ -75,7 +85,12 @@ fn test_expand_path_single_html_file() {
     fs::write(&test_file, "<p>hi</p>").unwrap();
 
     let mut expanded = Vec::new();
-    expand_path(test_file.to_str().unwrap(), &mut expanded, &[])
+    expand_path(
+        test_file.to_str().unwrap(),
+        &mut expanded,
+        &[],
+        false,
+    )
         .unwrap();
 
     assert_eq!(expanded.len(), 1);
@@ -90,10 +105,34 @@ fn test_expand_path_ignores_unsupported_file() {
     fs::write(&test_file, [0u8, 1, 2, 3]).unwrap();
 
     let mut expanded = Vec::new();
-    expand_path(test_file.to_str().unwrap(), &mut expanded, &[])
+    expand_path(
+        test_file.to_str().unwrap(),
+        &mut expanded,
+        &[],
+        false,
+    )
         .unwrap();
 
     assert!(expanded.is_empty());
+}
+
+/// Test that a forced language accepts an otherwise unsupported extension.
+#[test]
+fn test_expand_path_forced_type_accepts_any_file() {
+    let temp_dir = TempDir::new().unwrap();
+    let test_file = temp_dir.path().join("template.txt");
+    fs::write(&test_file, "<p>hi</p>").unwrap();
+
+    let mut expanded = Vec::new();
+    expand_path(
+        test_file.to_str().unwrap(),
+        &mut expanded,
+        &[],
+        true,
+    )
+        .unwrap();
+
+    assert_eq!(expanded.len(), 1);
 }
 
 /// Test expanding a nonexistent file returns error.
@@ -101,7 +140,7 @@ fn test_expand_path_ignores_unsupported_file() {
 fn test_expand_path_nonexistent_file() {
     let mut expanded = Vec::new();
     let result =
-        expand_path("/nonexistent/file.rs", &mut expanded, &[]);
+        expand_path("/nonexistent/file.rs", &mut expanded, &[], false);
     assert!(result.is_err());
 }
 
@@ -119,6 +158,7 @@ fn test_expand_path_directory() {
         temp_dir.path().to_str().unwrap(),
         &mut expanded,
         &[],
+        false,
     )
         .unwrap();
 
@@ -190,6 +230,7 @@ fn test_expand_path_with_exclude() {
         temp_dir.path().to_str().unwrap(),
         &mut expanded,
         &patterns,
+        false,
     )
         .unwrap();
 

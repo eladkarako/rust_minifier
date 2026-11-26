@@ -1613,6 +1613,58 @@ pub fn detect_language_from_source(
     detect_language(path)
 }
 
+/// Render the complete supported/excluded type listing for `--list-types`.
+pub fn type_listing() -> String {
+    fn extensions_of(language: &Language) -> String {
+        let mut parts: Vec<String> = language
+            .extensions
+            .iter()
+            .map(|extension| format!(".{}", extension))
+            .collect();
+        for filename in language.filenames {
+            parts.push((*filename).to_string());
+        }
+        if parts.is_empty() {
+            "-".to_string()
+        } else {
+            parts.join(", ")
+        }
+    }
+
+    let mut output = String::new();
+    output.push_str(&format!(
+        "Supported types ({}):\n",
+        LANGUAGES.len()
+    ));
+    for language in LANGUAGES {
+        output.push_str(&format!(
+            "  {:<16} {:<28} {}\n",
+            language.id,
+            language.display_name,
+            extensions_of(language)
+        ));
+    }
+
+    output.push_str(&format!(
+        "\nExcluded types ({}):\n",
+        EXCLUDED_TYPES.len()
+    ));
+    for excluded in EXCLUDED_TYPES {
+        let extensions: Vec<String> = excluded
+            .extensions
+            .iter()
+            .map(|extension| format!(".{}", extension))
+            .collect();
+        output.push_str(&format!(
+            "  {:<28} {:<24} {}\n",
+            excluded.name,
+            extensions.join(", "),
+            excluded.reason
+        ));
+    }
+    output
+}
+
 /// A compact list of supported extensions, used by help text.
 pub fn supported_extension_summary() -> String {
     let mut extensions: Vec<&'static str> = Vec::new();

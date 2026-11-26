@@ -6,15 +6,33 @@ use clap::Parser;
 #[command(author = env!("CARGO_PKG_AUTHORS"))]
 #[command(about = env!("CARGO_PKG_DESCRIPTION"), long_about = None)]
 #[command(
-    after_help = concat!("Repository:    ", env!("CARGO_PKG_REPOSITORY"), "\n", "Homepage:      ", env!("CARGO_PKG_HOMEPAGE"))
+    after_help = concat!("Repository:    ", env!("CARGO_PKG_REPOSITORY"), "\n", "Homepage:      ", env!("CARGO_PKG_HOMEPAGE"), "\n", "Use --list-types to see every supported file type.")
 )]
 pub struct Args {
     /// Input files or directories to minify.
     ///
-    /// Can be individual `.rs` or `.toml` files, or directories to recursively search.
+    /// Can be individual supported text files, or directories to recursively search.
     /// If omitted, reads from stdin.
     #[arg(value_name = "FILES")]
     pub files: Vec<String>,
+
+    /// Force a language for every input instead of detecting it.
+    ///
+    /// Accepts a language id or alias from `--list-types`, for example
+    /// `html`, `typescript`, `kotlin` or `yaml`.
+    #[arg(short = 't', long = "type", value_name = "LANGUAGE")]
+    pub forced_type: Option<String>,
+
+    /// Keep original line breaks where the format allows it.
+    ///
+    /// By default output is collapsed to a single line. Line based formats
+    /// already keep their line structure.
+    #[arg(long)]
+    pub preserve_line_breaks: bool,
+
+    /// List every supported and excluded file type, then exit.
+    #[arg(long)]
+    pub list_types: bool,
 
     /// Suffix to append to minified output filenames.
     ///
@@ -42,6 +60,12 @@ pub struct Args {
     #[arg(long, default_value = "true")]
     pub include_file_path: bool,
 
+    /// Do not prefix output with the source file path.
+    ///
+    /// This is the inverse of `--include-file-path` and wins when both are set.
+    #[arg(long)]
+    pub no_include_file_path: bool,
+
     /// Exclude files matching these patterns (non-case-sensitive substring match on filename).
     ///
     /// Files whose names contain any of these patterns are skipped during processing.
@@ -61,6 +85,18 @@ pub struct Args {
 impl Args {
     pub fn parse() -> Args {
         <Args as clap::Parser>::parse()
+    }
+
+    /// Whether source paths should be embedded in the output.
+    pub fn include_source_path(&self) -> bool {
+        self.include_file_path && !self.no_include_file_path
+    }
+
+    /// Build the shared minifier options from the CLI flags.
+    pub fn minifier_options(&self) -> crate::minifier::MinifierOptions {
+        crate::minifier::MinifierOptions {
+            preserve_line_breaks: self.preserve_line_breaks,
+        }
     }
 }
 

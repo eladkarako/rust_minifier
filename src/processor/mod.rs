@@ -96,9 +96,29 @@ pub async fn process_all(args: &Args) -> Result<()> {
     eprintln!("  Files:              {:?}", args.files);
     eprintln!("  Suffix:             {}", args.suffix);
     eprintln!("  Concat to:          {}", args.concat_to);
-    eprintln!("  Include file path:  {}", args.include_file_path);
+    eprintln!("  Include file path:  {}", args.include_source_path());
     eprintln!("  Soft split:         {}", args.soft_split);
+    eprintln!(
+        "  Preserve newlines:  {}",
+        args.preserve_line_breaks
+    );
+    if let Some(ref forced) = args.forced_type {
+        eprintln!("  Forced type:        {}", forced);
+    }
     eprintln!();
+
+    let forced_language = match args.forced_type.as_deref() {
+        Some(name) => Some(
+            language::find_language(name).ok_or_else(|| {
+                anyhow::anyhow!(
+                    "Unknown language type: {}. Use --list-types to see supported values.",
+                    name
+                )
+            })?,
+        ),
+        None => None,
+    };
+    let minifier_options = args.minifier_options();
 
     let soft_split_limit = parse_soft_split(&args.soft_split)?;
 
@@ -111,7 +131,12 @@ pub async fn process_all(args: &Args) -> Result<()> {
 
     let mut expanded_files = Vec::new();
     for file_arg in &args.files {
-        expand_path(file_arg, &mut expanded_files, &args.exclude)?;
+        expand_path(
+            file_arg,
+            &mut expanded_files,
+            &args.exclude,
+            forced_language.is_some(),
+        )?;
     }
 
     if expanded_files.is_empty() {
@@ -133,7 +158,7 @@ pub async fn process_all(args: &Args) -> Result<()> {
         &output_extension,
     )?;
     let suffix = args.suffix.clone();
-    let include_file_path = args.include_file_path;
+    let include_file_path = args.include_source_path();
     let num_files = expanded_files.len();
 
     for (idx, file) in expanded_files.iter().enumerate() {
@@ -142,6 +167,7 @@ pub async fn process_all(args: &Args) -> Result<()> {
         let suffix = suffix.clone();
         let concat_to_dest = concat_to_destination.clone();
         let stdout = stdout.clone();
+        let minifier_options = minifier_options.clone();
 
         let handle = tokio::spawn({
             async move {
@@ -154,6 +180,8 @@ pub async fn process_all(args: &Args) -> Result<()> {
                     include_file_path,
                     soft_split_limit,
                     stdout,
+                    forced_language,
+                    minifier_options,
                 )
                     .await;
                 let elapsed = file_start.elapsed().as_millis();
@@ -260,14 +288,15 @@ fn expand_path(
     path: &str,
     expanded: &mut Vec<String>,
     exclude_patterns: &[String],
+    accept_any_file: bool,
 ) -> Result<()> {
     let p = Path::new(path);
     if p.is_dir() {
         walk_directory(p, expanded, exclude_patterns)?;
     } else if p.is_file() {
-        if language::detect_language(p).is_some()
-            && !should_exclude_file(path, exclude_patterns)
-        {
+        let supported = accept_any_file
+            || language::detect_language(p).is_some();
+        if supported && !should_exclude_file(path, exclude_patterns) {
             expanded.push(path.to_string());
         }
     } else {
@@ -403,6 +432,8 @@ async fn process_single_file<W: io::Write + Send + 'static>(
     include_file_path: bool,
     soft_split_limit: Option<usize>,
     stdout: Arc<Mutex<W>>,
+    forced_language: Option<&'static Language>,
+    options: minifier::MinifierOptions,
 ) -> Result<Option<ProcessedFile>> {
     let path = Path::new(file_path);
     let file = fs::File::open(path)?;
@@ -416,16 +447,16 @@ async fn process_single_file<W: io::Write + Send + 'static>(
     // Ambiguous extensions (for example MATLAB vs Objective-C `.m`) are
     // resolved from the contents. When the contents do not match any
     // supported language the file is skipped.
-    let Some(language) = minifier::detect_language(path, &source)
-    else {
-        return Ok(None);
+    let language = match forced_language {
+        Some(language) => language,
+        None => match minifier::detect_language(path, &source) {
+            Some(language) => language,
+            None => return Ok(None),
+        },
     };
 
-    let minified = minifier::minify_with_language(
-        &source,
-        language,
-        &minifier::MinifierOptions::default(),
-    )?;
+    let minified =
+        minifier::minify_with_language(&source, language, &options)?;
 
     let output = if include_file_path {
         let full_path = std::fs::canonicalize(path)?
@@ -537,7 +568,7 @@ fn get_deduplicated_path(
     Ok(output_path)
 }
 
-pub async fn process_stdin(_args: &Args) -> Result<()> {
+pub async fn process_stdin(args: &Args) -> Result<()> {
     if io::stdin().is_terminal() {
         eprintln!(
             "No files provided and stdin is a terminal. Use --help for usage."
@@ -550,8 +581,21 @@ pub async fn process_stdin(_args: &Args) -> Result<()> {
     reader.read_to_end(&mut buffer)?;
 
     let source = String::from_utf8(buffer)?;
-    let dummy_path = Path::new("dummy.rs");
-    let minified = minifier::minify(&source, dummy_path)?;
+
+    let language = match args.forced_type.as_deref() {
+        Some(name) => language::find_language(name).ok_or_else(|| {
+            anyhow::anyhow!(
+                "Unknown language type: {}. Use --list-types to see supported values.",
+                name
+            )
+        })?,
+        None => language::find_language("rust").expect("rust is registered"),
+    };
+    let minified = minifier::minify_with_language(
+        &source,
+        language,
+        &args.minifier_options(),
+    )?;
 
     let stdout = io::stdout();
     let mut writer = BufWriter::new(stdout.lock());

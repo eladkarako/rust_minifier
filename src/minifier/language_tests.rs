@@ -281,3 +281,13 @@ fn supported_extension_summary_mentions_common_types() {
         );
     }
 }
+
+#[test]
+fn type_listing_includes_supported_and_excluded() {
+    let listing = type_listing();
+    assert!(listing.contains("Supported types"));
+    assert!(listing.contains("Excluded types"));
+    assert!(listing.contains("html"));
+    assert!(listing.contains("Python"));
+    assert!(listing.contains("indentation"));
+}

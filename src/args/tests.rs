@@ -6,9 +6,13 @@ use super::*;
 fn default_args() -> Args {
     Args {
         files: vec!["test.rs".to_string()],
+        forced_type: None,
+        preserve_line_breaks: false,
+        list_types: false,
         suffix: "_minified".to_string(),
         concat_to: "STDOUT".to_string(),
         include_file_path: true,
+        no_include_file_path: false,
         exclude: vec![],
         soft_split: "unlimited".to_string(),
     }
@@ -183,9 +187,13 @@ fn test_args_complete_configuration() {
             "src/lib.rs".to_string(),
             "Cargo.toml".to_string(),
         ],
+        forced_type: Some("rust".to_string()),
+        preserve_line_breaks: true,
+        list_types: false,
         suffix: "_min".to_string(),
         concat_to: "/output/minified.txt".to_string(),
         include_file_path: true,
+        no_include_file_path: false,
         exclude: vec!["test".to_string(), "mock".to_string()],
         soft_split: "50000".to_string(),
     };
@@ -194,6 +202,8 @@ fn test_args_complete_configuration() {
     assert_eq!(args.suffix, "_min");
     assert_eq!(args.concat_to, "/output/minified.txt");
     assert!(args.include_file_path);
+    assert!(args.preserve_line_breaks);
+    assert_eq!(args.forced_type.as_deref(), Some("rust"));
     assert_eq!(args.exclude.len(), 2);
     assert_eq!(args.soft_split, "50000");
 }
@@ -267,4 +277,46 @@ fn test_args_clone_independence() {
     assert_eq!(args1.files.len(), 1);
     assert_eq!(args2.suffix, "_different");
     assert_eq!(args2.files.len(), 2);
+}
+
+/// Test that no_include_file_path wins over include_file_path.
+#[test]
+fn test_args_include_source_path_override() {
+    let mut args = default_args();
+    assert!(args.include_source_path());
+
+    args.no_include_file_path = true;
+    assert!(!args.include_source_path());
+}
+
+/// Test minifier options reflect preserve_line_breaks.
+#[test]
+fn test_args_minifier_options_line_breaks() {
+    let mut args = default_args();
+    assert!(!args.minifier_options().preserve_line_breaks);
+
+    args.preserve_line_breaks = true;
+    assert!(args.minifier_options().preserve_line_breaks);
+}
+
+/// Test forced_type is optional by default.
+#[test]
+fn test_args_forced_type_default() {
+    let args = default_args();
+    assert!(args.forced_type.is_none());
+}
+
+/// Test forced_type accepts a language id.
+#[test]
+fn test_args_forced_type_value() {
+    let mut args = default_args();
+    args.forced_type = Some("html".to_string());
+    assert_eq!(args.forced_type.as_deref(), Some("html"));
+}
+
+/// Test list_types defaults to false.
+#[test]
+fn test_args_list_types_default() {
+    let args = default_args();
+    assert!(!args.list_types);
 }

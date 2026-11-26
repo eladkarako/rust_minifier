@@ -20,6 +20,11 @@ use anyhow::Result;
 async fn main() -> Result<()> {
     let args = args::Args::parse();
 
+    if args.list_types {
+        print!("{}", minifier::language::type_listing());
+        return Ok(());
+    }
+
     if args.files.is_empty() {
         processor::process_stdin(&args).await?;
     } else {
