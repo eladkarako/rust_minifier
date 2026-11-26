@@ -35,14 +35,19 @@ struct Token {
     preceded_by_newline: bool,
 }
 
-fn consume_string(chars: &[char], start: usize) -> (String, usize) {
+fn consume_string(
+    chars: &[char],
+    start: usize,
+) -> (String, usize) {
     // Block string: triple double quote.
     if chars.get(start + 1) == Some(&'"')
         && chars.get(start + 2) == Some(&'"')
     {
         let mut text = String::new();
         for _ in 0..3 {
-            if let Some(character) = chars.get(start + text.chars().count()) {
+            if let Some(character) =
+                chars.get(start + text.chars().count())
+            {
                 text.push(*character);
             }
         }
@@ -178,16 +183,25 @@ fn is_word_like(token: &Token) -> bool {
     matches!(token.kind, TokenKind::Word | TokenKind::String)
 }
 
-fn needs_space(previous: &Token, next: &Token) -> bool {
-    next.preceded_by_space && is_word_like(previous) && is_word_like(next)
+fn needs_space(
+    previous: &Token,
+    next: &Token,
+) -> bool {
+    next.preceded_by_space
+        && is_word_like(previous)
+        && is_word_like(next)
 }
 
-fn reconstruct(tokens: &[Token], options: &MinifierOptions) -> String {
+fn reconstruct(
+    tokens: &[Token],
+    options: &MinifierOptions,
+) -> String {
     let mut output = String::new();
     let mut previous: Option<&Token> = None;
 
     for token in tokens {
-        if options.preserve_line_breaks && token.preceded_by_newline {
+        if options.preserve_line_breaks && token.preceded_by_newline
+        {
             if !output.is_empty() && !output.ends_with('\n') {
                 output.push('\n');
             }

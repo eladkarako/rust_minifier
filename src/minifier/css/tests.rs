@@ -2,7 +2,10 @@
 
 use super::*;
 
-fn minify(source: &str, dialect: CssDialect) -> String {
+fn minify(
+    source: &str,
+    dialect: CssDialect,
+) -> String {
     minify_css(source, dialect, &MinifierOptions::default())
 }
 
@@ -21,13 +24,19 @@ fn keeps_descendant_selector_space() {
 #[test]
 fn keeps_space_before_pseudo_class() {
     let source = "a :hover { color: red; }";
-    assert_eq!(minify(source, CssDialect::Css), "a :hover{color:red}");
+    assert_eq!(
+        minify(source, CssDialect::Css),
+        "a :hover{color:red}"
+    );
 }
 
 #[test]
 fn removes_space_inside_pseudo_class() {
     let source = "a:hover { color: red; }";
-    assert_eq!(minify(source, CssDialect::Css), "a:hover{color:red}");
+    assert_eq!(
+        minify(source, CssDialect::Css),
+        "a:hover{color:red}"
+    );
 }
 
 #[test]
@@ -75,7 +84,10 @@ fn handles_scss_variables() {
 #[test]
 fn handles_scss_nesting() {
     let source = ".a { .b { color: red; } }";
-    assert_eq!(minify(source, CssDialect::Scss), ".a{.b{color:red}}");
+    assert_eq!(
+        minify(source, CssDialect::Scss),
+        ".a{.b{color:red}}"
+    );
 }
 
 #[test]
@@ -99,7 +111,10 @@ fn keeps_media_query_logic_spaces() {
 #[test]
 fn removes_space_before_important() {
     let source = ".a { color: red !important; }";
-    assert_eq!(minify(source, CssDialect::Css), ".a{color:red!important}");
+    assert_eq!(
+        minify(source, CssDialect::Css),
+        ".a{color:red!important}"
+    );
 }
 
 #[test]

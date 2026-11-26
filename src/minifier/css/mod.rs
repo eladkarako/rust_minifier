@@ -52,13 +52,19 @@ struct Token {
     preceded_by_newline: bool,
 }
 
-fn starts_with_ignore_case(source: &[char], position: usize, needle: &str) -> bool {
+fn starts_with_ignore_case(
+    source: &[char],
+    position: usize,
+    needle: &str,
+) -> bool {
     let mut offset = 0usize;
     for expected in needle.chars() {
         let Some(actual) = source.get(position + offset) else {
             return false;
         };
-        if actual.to_ascii_lowercase() != expected.to_ascii_lowercase() {
+        if actual.to_ascii_lowercase()
+            != expected.to_ascii_lowercase()
+        {
             return false;
         }
         offset += 1;
@@ -66,7 +72,11 @@ fn starts_with_ignore_case(source: &[char], position: usize, needle: &str) -> bo
     true
 }
 
-fn consume_string(chars: &[char], position: &mut usize, quote: char) -> String {
+fn consume_string(
+    chars: &[char],
+    position: &mut usize,
+    quote: char,
+) -> String {
     let mut text = String::new();
     if let Some(character) = chars.get(*position).copied() {
         text.push(character);
@@ -89,7 +99,10 @@ fn consume_string(chars: &[char], position: &mut usize, quote: char) -> String {
     text
 }
 
-fn consume_url(chars: &[char], position: &mut usize) -> String {
+fn consume_url(
+    chars: &[char],
+    position: &mut usize,
+) -> String {
     let mut text = String::new();
     let mut depth = 0usize;
     while let Some(character) = chars.get(*position).copied() {
@@ -109,7 +122,9 @@ fn consume_url(chars: &[char], position: &mut usize) -> String {
                 text.push(inner);
                 *position += 1;
                 if inner == '\\' {
-                    if let Some(escaped) = chars.get(*position).copied() {
+                    if let Some(escaped) =
+                        chars.get(*position).copied()
+                    {
                         text.push(escaped);
                         *position += 1;
                     }
@@ -125,20 +140,32 @@ fn consume_url(chars: &[char], position: &mut usize) -> String {
 }
 
 fn is_word_character(character: char) -> bool {
-    character.is_alphanumeric() || character == '_' || character == '-'
+    character.is_alphanumeric()
+        || character == '_'
+        || character == '-'
 }
 
-fn starts_word(chars: &[char], position: usize) -> bool {
+fn starts_word(
+    chars: &[char],
+    position: usize,
+) -> bool {
     let character = chars[position];
     if character == '-' {
-        return chars.get(position + 1).is_some_and(|next| {
-            next.is_alphanumeric() || *next == '_' || *next == '-'
-        });
+        return chars
+            .get(position + 1)
+            .is_some_and(|next| {
+                next.is_alphanumeric()
+                    || *next == '_'
+                    || *next == '-'
+            });
     }
     character.is_alphanumeric() || character == '_'
 }
 
-fn tokenize(source: &str, dialect: CssDialect) -> Vec<Token> {
+fn tokenize(
+    source: &str,
+    dialect: CssDialect,
+) -> Vec<Token> {
     let chars: Vec<char> = source.chars().collect();
     let mut tokens = Vec::new();
     let mut position = 0usize;
@@ -157,14 +184,18 @@ fn tokenize(source: &str, dialect: CssDialect) -> Vec<Token> {
             continue;
         }
 
-        if character == '/' && chars.get(position + 1) == Some(&'*') {
+        if character == '/' && chars.get(position + 1) == Some(&'*')
+        {
             position += 2;
             while position < chars.len() {
-                if chars[position] == '*' && chars.get(position + 1) == Some(&'/') {
+                if chars[position] == '*'
+                    && chars.get(position + 1) == Some(&'/')
+                {
                     position += 2;
                     break;
                 }
-                if chars[position] == '\n' || chars[position] == '\r' {
+                if chars[position] == '\n' || chars[position] == '\r'
+                {
                     had_newline = true;
                 }
                 position += 1;
@@ -189,7 +220,8 @@ fn tokenize(source: &str, dialect: CssDialect) -> Vec<Token> {
         }
 
         if character == '"' || character == '\'' {
-            let text = consume_string(&chars, &mut position, character);
+            let text =
+                consume_string(&chars, &mut position, character);
             tokens.push(Token {
                 kind: TokenKind::String,
                 text,
@@ -341,7 +373,10 @@ fn is_function_name(word: &str) -> bool {
     )
 }
 
-fn dangerous_pair(left: char, right: char) -> bool {
+fn dangerous_pair(
+    left: char,
+    right: char,
+) -> bool {
     matches!(
         [left, right],
         ['/', '*']
@@ -364,7 +399,10 @@ fn dangerous_pair(left: char, right: char) -> bool {
     )
 }
 
-fn colon_is_declaration(tokens: &[Token], index: usize) -> bool {
+fn colon_is_declaration(
+    tokens: &[Token],
+    index: usize,
+) -> bool {
     let mut parentheses = 0isize;
     let mut braces = 0isize;
     for token in tokens.iter().skip(index + 1) {
@@ -392,9 +430,11 @@ fn colon_is_declaration(tokens: &[Token], index: usize) -> bool {
                     braces -= 1;
                 }
             }
-            TokenKind::Punct(';') if parentheses == 0 && braces == 0 => {
-                return true;
-            }
+            TokenKind::Punct(';')
+            if parentheses == 0 && braces == 0 =>
+                {
+                    return true;
+                }
             _ => {}
         }
     }
@@ -457,17 +497,14 @@ fn reconstruct(
     let mut previous: Option<&Token> = None;
 
     for (index, token) in tokens.iter().enumerate() {
-        if token.preceded_by_newline && options.preserve_line_breaks {
+        if token.preceded_by_newline && options.preserve_line_breaks
+        {
             if !output.is_empty() && !output.ends_with('\n') {
                 output.push('\n');
             }
         } else if let Some(previous_token) = previous {
-            if needs_space(
-                previous_token,
-                token,
-                tokens,
-                index,
-            ) && !output.ends_with(' ')
+            if needs_space(previous_token, token, tokens, index)
+                && !output.ends_with(' ')
                 && !output.ends_with('\n')
             {
                 output.push(' ');

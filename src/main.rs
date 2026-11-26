@@ -10,8 +10,11 @@
 static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
 
 mod args;
+
 mod metadata;
+
 mod minifier;
+
 mod processor;
 
 use anyhow::Result;

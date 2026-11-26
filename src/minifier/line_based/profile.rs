@@ -103,9 +103,7 @@ pub static GITIGNORE: LineProfile = LineProfile {
     ..BASE
 };
 
-pub static PROGUARD: LineProfile = LineProfile {
-    ..BASE
-};
+pub static PROGUARD: LineProfile = LineProfile { ..BASE };
 
 pub static PO: LineProfile = LineProfile {
     line_comment_line_start_only: true,
@@ -175,13 +173,9 @@ pub static PERL: LineProfile = LineProfile {
     ..BASE
 };
 
-pub static RUBY: LineProfile = LineProfile {
-    ..BASE
-};
+pub static RUBY: LineProfile = LineProfile { ..BASE };
 
-pub static R: LineProfile = LineProfile {
-    ..BASE
-};
+pub static R: LineProfile = LineProfile { ..BASE };
 
 pub static JULIA: LineProfile = LineProfile {
     block_comments: &[("#=", "=#")],
@@ -193,9 +187,7 @@ pub static TCL: LineProfile = LineProfile {
     ..BASE
 };
 
-pub static AWK: LineProfile = LineProfile {
-    ..BASE
-};
+pub static AWK: LineProfile = LineProfile { ..BASE };
 
 pub static NIM: LineProfile = LineProfile {
     block_comments: &[("#[", "]#")],
@@ -203,7 +195,9 @@ pub static NIM: LineProfile = LineProfile {
 };
 
 /// Return the profile for a line based language id.
-pub fn profile_for(language_id: &str) -> Option<&'static LineProfile> {
+pub fn profile_for(
+    language_id: &str
+) -> Option<&'static LineProfile> {
     match language_id {
         "shell" => Some(&SHELL),
         "yaml" => Some(&YAML),

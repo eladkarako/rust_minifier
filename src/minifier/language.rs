@@ -66,7 +66,10 @@ pub enum CommentStyle {
 
 impl CommentStyle {
     /// Render a path comment. Returns `None` when the format cannot carry one.
-    pub fn render(self, text: &str) -> Option<String> {
+    pub fn render(
+        self,
+        text: &str,
+    ) -> Option<String> {
         match self {
             CommentStyle::Line(prefix) => {
                 Some(format!("{} {}", prefix, text))
@@ -80,7 +83,9 @@ impl CommentStyle {
 }
 
 /// Broad grouping used for documentation and deterministic output ordering.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash,
+)]
 pub enum Category {
     Rust,
     Web,
@@ -207,7 +212,10 @@ pub static LANGUAGES: &[Language] = &[
         CommentStyle::Block("<!--", "-->"),
         Category::Web,
         true,
-        &["html", "htm", "shtml", "shtm", "xhtml", "xht", "xhtm", "hta"],
+        &[
+            "html", "htm", "shtml", "shtm", "xhtml", "xht", "xhtm",
+            "hta",
+        ],
         &[],
         &[],
         &["htm"],
@@ -221,13 +229,51 @@ pub static LANGUAGES: &[Language] = &[
         Category::Markup,
         true,
         &[
-            "xml", "xsd", "xsl", "xslt", "wsdl", "rss", "atom", "plist",
-            "storyboard", "xib", "resx", "csproj", "vbproj", "fsproj",
-            "props", "targets", "nuspec", "config", "manifest", "xaml",
-            "axaml", "ui", "glade", "xul", "rdf", "owl", "bpmn", "dmn",
-            "wxs", "wxi", "wxl", "settings", "kml", "gpx", "gml", "tcx",
-            "opml", "proj", "projitems", "shproj", "vcxproj", "vcproj",
-            "xproj", "dtsx", "wsf",
+            "xml",
+            "xsd",
+            "xsl",
+            "xslt",
+            "wsdl",
+            "rss",
+            "atom",
+            "plist",
+            "storyboard",
+            "xib",
+            "resx",
+            "csproj",
+            "vbproj",
+            "fsproj",
+            "props",
+            "targets",
+            "nuspec",
+            "config",
+            "manifest",
+            "xaml",
+            "axaml",
+            "ui",
+            "glade",
+            "xul",
+            "rdf",
+            "owl",
+            "bpmn",
+            "dmn",
+            "wxs",
+            "wxi",
+            "wxl",
+            "settings",
+            "kml",
+            "gpx",
+            "gml",
+            "tcx",
+            "opml",
+            "proj",
+            "projitems",
+            "shproj",
+            "vcxproj",
+            "vcproj",
+            "xproj",
+            "dtsx",
+            "wsf",
         ],
         &[],
         &[],
@@ -555,7 +601,12 @@ pub static LANGUAGES: &[Language] = &[
         Category::Config,
         false,
         &["properties", "env"],
-        &[".env", ".env.local", ".env.development", ".env.production"],
+        &[
+            ".env",
+            ".env.local",
+            ".env.development",
+            ".env.production",
+        ],
         &[".env."],
         &["dotenv"],
         "line preserving; # and ! comments removed; backslash continuations joined",
@@ -582,8 +633,8 @@ pub static LANGUAGES: &[Language] = &[
         Category::Systems,
         true,
         &[
-            "cpp", "cxx", "cc", "c++", "hpp", "hxx", "hh", "h++", "ipp",
-            "inl", "tpp", "txx",
+            "cpp", "cxx", "cc", "c++", "hpp", "hxx", "hh", "h++",
+            "ipp", "inl", "tpp", "txx",
         ],
         &[],
         &[],
@@ -781,7 +832,13 @@ pub static LANGUAGES: &[Language] = &[
         Category::Scripting,
         false,
         &["sh", "bash", "zsh", "fish", "ksh"],
-        &[".bashrc", ".bash_profile", ".zshrc", ".profile", ".bash_aliases"],
+        &[
+            ".bashrc",
+            ".bash_profile",
+            ".zshrc",
+            ".profile",
+            ".bash_aliases",
+        ],
         &[],
         &["bash", "sh"],
         "line preserving; heredocs preserved; # comments removed",
@@ -847,11 +904,29 @@ pub static LANGUAGES: &[Language] = &[
         false,
         &["rb", "rake", "gemspec", "ru"],
         &[
-            "Rakefile", "Gemfile", "Podfile", "Fastfile", "Appfile",
-            "Matchfile", "Scanfile", "Gymfile", "Snapfile", "Deliverfile",
-            "Pluginfile", "Dangerfile", "Steepfile", "Guardfile", "Capfile",
-            "Thorfile", "Berksfile", "Cheffile", "Bowerfile", "Caskfile",
-            "Puppetfile", "Vagrantfile", "Brewfile",
+            "Rakefile",
+            "Gemfile",
+            "Podfile",
+            "Fastfile",
+            "Appfile",
+            "Matchfile",
+            "Scanfile",
+            "Gymfile",
+            "Snapfile",
+            "Deliverfile",
+            "Pluginfile",
+            "Dangerfile",
+            "Steepfile",
+            "Guardfile",
+            "Capfile",
+            "Thorfile",
+            "Berksfile",
+            "Cheffile",
+            "Bowerfile",
+            "Caskfile",
+            "Puppetfile",
+            "Vagrantfile",
+            "Brewfile",
         ],
         &[],
         &["rb"],
@@ -1048,12 +1123,28 @@ pub static LANGUAGES: &[Language] = &[
         Category::Data,
         true,
         &[
-            "json", "jsonc", "json5", "webmanifest", "map", "har",
-            "geojson", "topojson", "ipynb", "avsc", "jsonld", "sarif",
+            "json",
+            "jsonc",
+            "json5",
+            "webmanifest",
+            "map",
+            "har",
+            "geojson",
+            "topojson",
+            "ipynb",
+            "avsc",
+            "jsonld",
+            "sarif",
         ],
         &[
-            ".babelrc", ".eslintrc", ".prettierrc", ".stylelintrc",
-            ".swcrc", ".commitlintrc", ".lintstagedrc", ".nycrc",
+            ".babelrc",
+            ".eslintrc",
+            ".prettierrc",
+            ".stylelintrc",
+            ".swcrc",
+            ".commitlintrc",
+            ".lintstagedrc",
+            ".nycrc",
         ],
         &[],
         &["jsonc", "json5"],
@@ -1198,15 +1289,40 @@ pub static LANGUAGES: &[Language] = &[
         Category::Config,
         false,
         &[
-            "ini", "cfg", "conf", "cnf", "desktop", "service", "timer",
-            "socket", "mount", "path", "target", "slice", "scope",
-            "automount", "swap", "device", "network", "netdev", "link",
-            "dnssd", "nspawn",
+            "ini",
+            "cfg",
+            "conf",
+            "cnf",
+            "desktop",
+            "service",
+            "timer",
+            "socket",
+            "mount",
+            "path",
+            "target",
+            "slice",
+            "scope",
+            "automount",
+            "swap",
+            "device",
+            "network",
+            "netdev",
+            "link",
+            "dnssd",
+            "nspawn",
         ],
         &[
-            ".editorconfig", ".gitconfig", ".gitmodules", ".npmrc",
-            ".yarnrc", ".pylintrc", ".flake8", ".coveragerc", ".mypy.ini",
-            ".pypirc", ".hgrc",
+            ".editorconfig",
+            ".gitconfig",
+            ".gitmodules",
+            ".npmrc",
+            ".yarnrc",
+            ".pylintrc",
+            ".flake8",
+            ".coveragerc",
+            ".mypy.ini",
+            ".pypirc",
+            ".hgrc",
         ],
         &[],
         &["properties-ini", "config"],
@@ -1311,24 +1427,66 @@ pub static LANGUAGES: &[Language] = &[
         Category::Config,
         false,
         &[
-            "gitignore", "dockerignore", "npmignore", "eslintignore",
-            "prettierignore", "stylelintignore", "vscodeignore",
-            "hgignore", "cvsignore", "slugignore", "cfignore",
-            "helmignore", "gcloudignore", "vercelignore", "netlifyignore",
-            "nowignore", "firebaseignore", "amplifyignore",
-            "serverlessignore", "terraformignore", "pulumiignore",
-            "cdkignore", "sstignore", "wranglerignore", "denoignore",
-            "rgignore", "fdignore", "agignore", "ignore",
+            "gitignore",
+            "dockerignore",
+            "npmignore",
+            "eslintignore",
+            "prettierignore",
+            "stylelintignore",
+            "vscodeignore",
+            "hgignore",
+            "cvsignore",
+            "slugignore",
+            "cfignore",
+            "helmignore",
+            "gcloudignore",
+            "vercelignore",
+            "netlifyignore",
+            "nowignore",
+            "firebaseignore",
+            "amplifyignore",
+            "serverlessignore",
+            "terraformignore",
+            "pulumiignore",
+            "cdkignore",
+            "sstignore",
+            "wranglerignore",
+            "denoignore",
+            "rgignore",
+            "fdignore",
+            "agignore",
+            "ignore",
         ],
         &[
-            ".gitignore", ".dockerignore", ".npmignore", ".eslintignore",
-            ".prettierignore", ".stylelintignore", ".vscodeignore",
-            ".hgignore", ".cvsignore", ".slugignore", ".cfignore",
-            ".helmignore", ".gcloudignore", ".vercelignore",
-            ".netlifyignore", ".nowignore", ".firebaseignore",
-            ".amplifyignore", ".serverlessignore", ".terraformignore",
-            ".pulumiignore", ".cdkignore", ".sstignore", ".wranglerignore",
-            ".denoignore", ".rgignore", ".fdignore", ".agignore", ".ignore",
+            ".gitignore",
+            ".dockerignore",
+            ".npmignore",
+            ".eslintignore",
+            ".prettierignore",
+            ".stylelintignore",
+            ".vscodeignore",
+            ".hgignore",
+            ".cvsignore",
+            ".slugignore",
+            ".cfignore",
+            ".helmignore",
+            ".gcloudignore",
+            ".vercelignore",
+            ".netlifyignore",
+            ".nowignore",
+            ".firebaseignore",
+            ".amplifyignore",
+            ".serverlessignore",
+            ".terraformignore",
+            ".pulumiignore",
+            ".cdkignore",
+            ".sstignore",
+            ".wranglerignore",
+            ".denoignore",
+            ".rgignore",
+            ".fdignore",
+            ".agignore",
+            ".ignore",
         ],
         &[],
         &[],
@@ -1475,13 +1633,14 @@ pub static EXCLUDED_TYPES: &[ExcludedType] = &[
     ExcludedType {
         name: "Binary and archive formats",
         extensions: &[
-            "png", "jpg", "jpeg", "gif", "webp", "ico", "bmp", "tif",
-            "tiff", "ttf", "otf", "woff", "woff2", "eot", "mp3", "mp4",
-            "wav", "ogg", "webm", "zip", "gz", "tgz", "bz2", "xz", "7z",
-            "rar", "tar", "pdf", "doc", "docx", "xls", "xlsx", "ppt",
-            "pptx", "exe", "dll", "so", "dylib", "a", "lib", "o", "obj",
-            "class", "jar", "apk", "aab", "dex", "wasm", "keystore",
-            "jks", "p12", "pfx", "der", "cer", "pem", "crt", "key",
+            "png", "jpg", "jpeg", "gif", "webp", "ico", "bmp",
+            "tif", "tiff", "ttf", "otf", "woff", "woff2", "eot",
+            "mp3", "mp4", "wav", "ogg", "webm", "zip", "gz", "tgz",
+            "bz2", "xz", "7z", "rar", "tar", "pdf", "doc", "docx",
+            "xls", "xlsx", "ppt", "pptx", "exe", "dll", "so",
+            "dylib", "a", "lib", "o", "obj", "class", "jar", "apk",
+            "aab", "dex", "wasm", "keystore", "jks", "p12", "pfx",
+            "der", "cer", "pem", "crt", "key",
         ],
         reason: "binary content is out of scope",
     },
@@ -1493,9 +1652,9 @@ pub fn find_language(name: &str) -> Option<&'static Language> {
     LANGUAGES.iter().find(|language| {
         language.id == needle
             || language
-                .aliases
-                .iter()
-                .any(|alias| alias.to_lowercase() == needle)
+            .aliases
+            .iter()
+            .any(|alias| alias.to_lowercase() == needle)
             || language.display_name.to_lowercase() == needle
     })
 }
@@ -1523,9 +1682,11 @@ fn match_by_file_name(path: &Path) -> Option<&'static Language> {
             .iter()
             .any(|candidate| candidate.to_lowercase() == file_name)
             || language
-                .filename_prefixes
-                .iter()
-                .any(|prefix| file_name.starts_with(&prefix.to_lowercase()))
+            .filename_prefixes
+            .iter()
+            .any(|prefix| {
+                file_name.starts_with(&prefix.to_lowercase())
+            })
     })
 }
 
@@ -1605,7 +1766,9 @@ pub fn detect_language_from_source(
             "pnpm-lock.yaml" | "pubspec.lock" | "podfile.lock" => {
                 find_language("yaml")
             }
-            "yarn.lock" | "gemfile.lock" => find_language("gitignore"),
+            "yarn.lock" | "gemfile.lock" => {
+                find_language("gitignore")
+            }
             _ => None,
         };
     }

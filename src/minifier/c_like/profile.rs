@@ -160,9 +160,7 @@ pub static LUA: CLikeProfile = CLikeProfile {
     ..C_STYLE_BASE
 };
 
-pub static PROTO: CLikeProfile = CLikeProfile {
-    ..C_STYLE_BASE
-};
+pub static PROTO: CLikeProfile = CLikeProfile { ..C_STYLE_BASE };
 
 pub static THRIFT: CLikeProfile = CLikeProfile {
     line_comments: &["//", "#"],
@@ -211,9 +209,7 @@ pub static PASCAL: CLikeProfile = CLikeProfile {
     ..C_STYLE_BASE
 };
 
-pub static AIDL: CLikeProfile = CLikeProfile {
-    ..C_STYLE_BASE
-};
+pub static AIDL: CLikeProfile = CLikeProfile { ..C_STYLE_BASE };
 
 pub static CRYSTAL: CLikeProfile = CLikeProfile {
     line_comments: &["#"],
@@ -221,9 +217,7 @@ pub static CRYSTAL: CLikeProfile = CLikeProfile {
     ..C_STYLE_BASE
 };
 
-pub static SOLIDITY: CLikeProfile = CLikeProfile {
-    ..C_STYLE_BASE
-};
+pub static SOLIDITY: CLikeProfile = CLikeProfile { ..C_STYLE_BASE };
 
 pub static CUDA: CLikeProfile = CLikeProfile {
     preprocessor_prefix: Some('#'),
@@ -282,7 +276,9 @@ pub static D_LANGUAGE: CLikeProfile = CLikeProfile {
 /// Return the profile for a language id. This keeps the registry free of
 /// engine-specific types while still allowing every language to have a precise
 /// lexer configuration.
-pub fn profile_for(language_id: &str) -> Option<&'static CLikeProfile> {
+pub fn profile_for(
+    language_id: &str
+) -> Option<&'static CLikeProfile> {
     match language_id {
         "javascript" | "jsx" => Some(&JAVASCRIPT),
         "typescript" | "tsx" => Some(&TYPESCRIPT),

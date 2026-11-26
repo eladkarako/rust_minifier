@@ -52,7 +52,10 @@ impl Minifier for JsonMinifier {
     }
 }
 
-fn skip_line_comment(chars: &[char], position: &mut usize) {
+fn skip_line_comment(
+    chars: &[char],
+    position: &mut usize,
+) {
     while *position < chars.len()
         && chars[*position] != '\n'
         && chars[*position] != '\r'
@@ -61,7 +64,10 @@ fn skip_line_comment(chars: &[char], position: &mut usize) {
     }
 }
 
-fn skip_block_comment(chars: &[char], position: &mut usize) {
+fn skip_block_comment(
+    chars: &[char],
+    position: &mut usize,
+) {
     *position += 2;
     while *position < chars.len() {
         if chars[*position] == '*'
@@ -174,7 +180,12 @@ pub fn minify_json(
         if character == '"'
             || (character == '\'' && profile.allow_single_quotes)
         {
-            copy_string(&chars, &mut position, character, &mut output);
+            copy_string(
+                &chars,
+                &mut position,
+                character,
+                &mut output,
+            );
             continue;
         }
 

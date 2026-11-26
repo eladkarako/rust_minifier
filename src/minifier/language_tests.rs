@@ -5,7 +5,8 @@ use std::path::Path;
 
 #[test]
 fn detects_rust_by_extension() {
-    let language = detect_language(Path::new("src/main.rs")).unwrap();
+    let language =
+        detect_language(Path::new("src/main.rs")).unwrap();
     assert_eq!(language.id, "rust");
     assert_eq!(language.engine, EngineKind::Rust);
 }
@@ -44,13 +45,15 @@ fn detects_typescript_by_extension() {
 
 #[test]
 fn detects_kotlin_script_by_extension() {
-    let language = detect_language(Path::new("build.gradle.kts")).unwrap();
+    let language =
+        detect_language(Path::new("build.gradle.kts")).unwrap();
     assert_eq!(language.id, "kotlin");
 }
 
 #[test]
 fn detects_gradle_groovy_by_extension() {
-    let language = detect_language(Path::new("build.gradle")).unwrap();
+    let language =
+        detect_language(Path::new("build.gradle")).unwrap();
     assert_eq!(language.id, "groovy");
 }
 
@@ -81,7 +84,8 @@ fn detects_dotenv_by_filename() {
 
 #[test]
 fn detects_dotenv_variant_by_prefix() {
-    let language = detect_language(Path::new(".env.production")).unwrap();
+    let language =
+        detect_language(Path::new(".env.production")).unwrap();
     assert_eq!(language.id, "properties");
 }
 
@@ -100,20 +104,23 @@ fn detects_svg_as_svg() {
 
 #[test]
 fn detects_xml_by_extension() {
-    let language = detect_language(Path::new("AndroidManifest.xml")).unwrap();
+    let language =
+        detect_language(Path::new("AndroidManifest.xml")).unwrap();
     assert_eq!(language.id, "xml");
 }
 
 #[test]
 fn detects_android_layout_as_xml() {
     let language =
-        detect_language(Path::new("res/layout/activity_main.xml")).unwrap();
+        detect_language(Path::new("res/layout/activity_main.xml"))
+            .unwrap();
     assert_eq!(language.id, "xml");
 }
 
 #[test]
 fn detects_aidl_by_extension() {
-    let language = detect_language(Path::new("MyService.aidl")).unwrap();
+    let language =
+        detect_language(Path::new("MyService.aidl")).unwrap();
     assert_eq!(language.id, "aidl");
     assert_eq!(language.category, Category::Android);
 }
@@ -127,7 +134,8 @@ fn detects_proguard_by_extension() {
 
 #[test]
 fn detects_smali_by_extension() {
-    let language = detect_language(Path::new("MainActivity.smali")).unwrap();
+    let language =
+        detect_language(Path::new("MainActivity.smali")).unwrap();
     assert_eq!(language.id, "smali");
 }
 
@@ -140,7 +148,8 @@ fn detects_yaml_by_extension() {
 
 #[test]
 fn detects_json_by_extension() {
-    let language = detect_language(Path::new("package.json")).unwrap();
+    let language =
+        detect_language(Path::new("package.json")).unwrap();
     assert_eq!(language.id, "json");
     assert!(language.single_line);
 }
@@ -153,7 +162,8 @@ fn detects_sql_by_extension() {
 
 #[test]
 fn detects_graphql_by_extension() {
-    let language = detect_language(Path::new("schema.graphql")).unwrap();
+    let language =
+        detect_language(Path::new("schema.graphql")).unwrap();
     assert_eq!(language.id, "graphql");
 }
 
@@ -166,7 +176,10 @@ fn finds_language_by_alias() {
 
 #[test]
 fn finds_language_case_insensitively() {
-    assert_eq!(find_language("JavaScript").unwrap().id, "javascript");
+    assert_eq!(
+        find_language("JavaScript").unwrap().id,
+        "javascript"
+    );
     assert_eq!(find_language("KOTLIN").unwrap().id, "kotlin");
 }
 
@@ -187,7 +200,11 @@ fn detects_markdown_as_unsupported() {
 
 #[test]
 fn excluded_types_are_listed() {
-    assert!(EXCLUDED_TYPES.iter().any(|entry| entry.name == "Python"));
+    assert!(
+        EXCLUDED_TYPES
+            .iter()
+            .any(|entry| entry.name == "Python")
+    );
     assert!(
         EXCLUDED_TYPES
             .iter()
@@ -197,27 +214,35 @@ fn excluded_types_are_listed() {
 
 #[test]
 fn comment_style_renders_line_comment() {
-    let rendered = CommentStyle::Line("//").render("src/main.rs").unwrap();
+    let rendered = CommentStyle::Line("//")
+        .render("src/main.rs")
+        .unwrap();
     assert_eq!(rendered, "// src/main.rs");
 }
 
 #[test]
 fn comment_style_renders_block_comment() {
-    let rendered =
-        CommentStyle::Block("<!--", "-->").render("index.html").unwrap();
+    let rendered = CommentStyle::Block("<!--", "-->")
+        .render("index.html")
+        .unwrap();
     assert_eq!(rendered, "<!-- index.html -->");
 }
 
 #[test]
 fn comment_style_none_renders_nothing() {
-    assert!(CommentStyle::None.render("data.bin").is_none());
+    assert!(
+        CommentStyle::None
+            .render("data.bin")
+            .is_none()
+    );
 }
 
 #[test]
 fn source_sniffing_detects_xml_config() {
     let path = Path::new("app.config");
     let source = "<?xml version=\"1.0\"?><configuration/>";
-    let language = detect_language_from_source(path, source).unwrap();
+    let language =
+        detect_language_from_source(path, source).unwrap();
     assert_eq!(language.id, "xml");
 }
 
@@ -225,15 +250,18 @@ fn source_sniffing_detects_xml_config() {
 fn source_sniffing_detects_ini_config() {
     let path = Path::new("app.config");
     let source = "[section]\nkey=value\n";
-    let language = detect_language_from_source(path, source).unwrap();
+    let language =
+        detect_language_from_source(path, source).unwrap();
     assert_eq!(language.id, "ini");
 }
 
 #[test]
 fn source_sniffing_detects_objective_c() {
     let path = Path::new("view.m");
-    let source = "#import <UIKit/UIKit.h>\n@implementation View\n@end";
-    let language = detect_language_from_source(path, source).unwrap();
+    let source =
+        "#import <UIKit/UIKit.h>\n@implementation View\n@end";
+    let language =
+        detect_language_from_source(path, source).unwrap();
     assert_eq!(language.id, "objectivec");
 }
 
@@ -273,7 +301,8 @@ fn every_language_has_a_unique_id() {
 #[test]
 fn supported_extension_summary_mentions_common_types() {
     let summary = supported_extension_summary();
-    for expected in [".rs", ".toml", ".html", ".js", ".kt", ".java"] {
+    for expected in [".rs", ".toml", ".html", ".js", ".kt", ".java"]
+    {
         assert!(
             summary.contains(expected),
             "summary is missing {}",

@@ -13,10 +13,7 @@ fn html_only_uses_markup_rules() {
 
 #[test]
 fn removes_php_line_comment() {
-    assert_eq!(
-        minify("<?php // c\necho 1; ?>"),
-        "<?php echo 1;?>"
-    );
+    assert_eq!(minify("<?php // c\necho 1; ?>"), "<?php echo 1;?>");
 }
 
 #[test]
@@ -79,8 +76,7 @@ fn multiple_php_blocks() {
 
 #[test]
 fn keeps_php8_attribute() {
-    let result =
-        minify("<?php #[Route(\"/\")] function f() {} ?>");
+    let result = minify("<?php #[Route(\"/\")] function f() {} ?>");
     assert!(result.contains("#[Route"));
     assert!(!result.contains("//"));
 }
@@ -100,10 +96,7 @@ fn empty_input_returns_empty() {
 
 #[test]
 fn removes_bom() {
-    assert_eq!(
-        minify("\u{feff}<?php echo 1;?>"),
-        "<?php echo 1;?>"
-    );
+    assert_eq!(minify("\u{feff}<?php echo 1;?>"), "<?php echo 1;?>");
 }
 
 #[test]

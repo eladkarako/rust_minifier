@@ -9,7 +9,10 @@ fn binary() -> &'static str {
     env!("CARGO_BIN_EXE_rust_minifier")
 }
 
-fn run_stdin(arguments: &[&str], input: &str) -> Output {
+fn run_stdin(
+    arguments: &[&str],
+    input: &str,
+) -> Output {
     let mut child = Command::new(binary())
         .args(arguments)
         .stdin(Stdio::piped())
@@ -23,7 +26,9 @@ fn run_stdin(arguments: &[&str], input: &str) -> Output {
         .expect("stdin pipe")
         .write_all(input.as_bytes())
         .expect("failed to write stdin");
-    child.wait_with_output().expect("failed to wait")
+    child
+        .wait_with_output()
+        .expect("failed to wait")
 }
 
 #[test]
@@ -57,10 +62,7 @@ fn forces_language_for_stdin() {
 fn short_type_flag_works() {
     let output = run_stdin(&["-t", "json"], "{ \"a\" : 1 }");
     assert!(output.status.success());
-    assert_eq!(
-        String::from_utf8_lossy(&output.stdout),
-        "{\"a\":1}"
-    );
+    assert_eq!(String::from_utf8_lossy(&output.stdout), "{\"a\":1}");
 }
 
 #[test]
@@ -78,8 +80,7 @@ fn preserve_line_breaks_keeps_newlines() {
 
 #[test]
 fn unknown_type_fails() {
-    let output =
-        run_stdin(&["--type", "not-a-real-language"], "x");
+    let output = run_stdin(&["--type", "not-a-real-language"], "x");
     assert!(!output.status.success());
     let stderr = String::from_utf8_lossy(&output.stderr);
     assert!(stderr.contains("Unknown language type"));
@@ -98,12 +99,11 @@ fn minifies_file_and_writes_suffixed_output() {
         .expect("failed to run");
     assert!(output.status.success());
 
-    let minified = directory.path().join("page_minified.html");
+    let minified = directory
+        .path()
+        .join("page_minified.html");
     assert!(minified.exists(), "expected {:?}", minified);
-    assert_eq!(
-        fs::read_to_string(minified).unwrap(),
-        "<p>hi</p>"
-    );
+    assert_eq!(fs::read_to_string(minified).unwrap(), "<p>hi</p>");
 }
 
 #[test]

@@ -4,7 +4,9 @@ use super::*;
 fn test_minify_removes_comments() {
     let minifier = TomlMinifier;
     let source = "name = \"test\" # this is a comment";
-    let result = minifier.minify(source, &MinifierOptions::default()).unwrap();
+    let result = minifier
+        .minify(source, &MinifierOptions::default())
+        .unwrap();
     assert!(!result.contains("#"));
     assert!(result.contains("name"));
 }
@@ -13,7 +15,9 @@ fn test_minify_removes_comments() {
 fn test_minify_removes_empty_lines() {
     let minifier = TomlMinifier;
     let source = "name = \"test\"\n\nversion = \"1.0\"";
-    let result = minifier.minify(source, &MinifierOptions::default()).unwrap();
+    let result = minifier
+        .minify(source, &MinifierOptions::default())
+        .unwrap();
     assert!(!result.contains("\n\n"));
 }
 
@@ -21,7 +25,9 @@ fn test_minify_removes_empty_lines() {
 fn test_minify_normalizes_spacing() {
     let minifier = TomlMinifier;
     let source = "name   =   \"test\"";
-    let result = minifier.minify(source, &MinifierOptions::default()).unwrap();
+    let result = minifier
+        .minify(source, &MinifierOptions::default())
+        .unwrap();
     assert!(result.contains("name="));
 }
 
@@ -29,7 +35,9 @@ fn test_minify_normalizes_spacing() {
 fn test_minify_handles_strings_with_hashes() {
     let minifier = TomlMinifier;
     let source = "description = \"This is a #hashtag\"";
-    let result = minifier.minify(source, &MinifierOptions::default()).unwrap();
+    let result = minifier
+        .minify(source, &MinifierOptions::default())
+        .unwrap();
     assert!(result.contains("#hashtag"));
 }
 
@@ -37,7 +45,9 @@ fn test_minify_handles_strings_with_hashes() {
 fn test_minify_complex_toml() {
     let minifier = TomlMinifier;
     let source = "[package]\nname = \"rust_minifier\" # package name\nversion = \"1.0.0\" # version";
-    let result = minifier.minify(source, &MinifierOptions::default()).unwrap();
+    let result = minifier
+        .minify(source, &MinifierOptions::default())
+        .unwrap();
     assert!(result.contains("[package]"));
     assert!(!result.contains("#"));
 }
@@ -45,7 +55,9 @@ fn test_minify_complex_toml() {
 #[test]
 fn test_minify_empty_source() {
     let minifier = TomlMinifier;
-    let result = minifier.minify("", &MinifierOptions::default()).unwrap();
+    let result = minifier
+        .minify("", &MinifierOptions::default())
+        .unwrap();
     assert!(result.is_empty());
 }
 
@@ -53,7 +65,9 @@ fn test_minify_empty_source() {
 fn test_minify_array_formatting() {
     let minifier = TomlMinifier;
     let source = "items = [ 1 , 2 , 3 ]";
-    let result = minifier.minify(source, &MinifierOptions::default()).unwrap();
+    let result = minifier
+        .minify(source, &MinifierOptions::default())
+        .unwrap();
     assert!(result.contains("["));
     assert!(result.contains("]"));
 }

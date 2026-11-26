@@ -70,6 +70,7 @@ fn remove_inline_comments(line: &str) -> String {
 }
 
 /// Normalize spacing: remove spaces/tabs around =, ,, {, and }
+
 fn normalize_spacing(line: &str) -> String {
     let mut result = String::new();
     let mut in_string = false;

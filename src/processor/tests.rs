@@ -139,8 +139,12 @@ fn test_expand_path_forced_type_accepts_any_file() {
 #[test]
 fn test_expand_path_nonexistent_file() {
     let mut expanded = Vec::new();
-    let result =
-        expand_path("/nonexistent/file.rs", &mut expanded, &[], false);
+    let result = expand_path(
+        "/nonexistent/file.rs",
+        &mut expanded,
+        &[],
+        false,
+    );
     assert!(result.is_err());
 }
 

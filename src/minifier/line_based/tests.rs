@@ -2,7 +2,10 @@
 
 use super::*;
 
-fn minify(source: &str, profile: &LineProfile) -> String {
+fn minify(
+    source: &str,
+    profile: &LineProfile,
+) -> String {
     minify_line_based(source, profile, &MinifierOptions::default())
 }
 
@@ -67,7 +70,8 @@ fn properties_joins_continuations() {
 
 #[test]
 fn dockerfile_only_removes_full_line_comments() {
-    let source = "# comment\nFROM alpine # not a comment\nRUN echo hi\n";
+    let source =
+        "# comment\nFROM alpine # not a comment\nRUN echo hi\n";
     assert_eq!(
         minify(source, &profile::DOCKERFILE),
         "FROM alpine # not a comment\nRUN echo hi"
@@ -101,7 +105,10 @@ fn assembly_removes_semicolon_comments() {
 #[test]
 fn powershell_removes_block_comments() {
     let source = "# c\n<# block\nstill #>Write-Host hi\n";
-    assert_eq!(minify(source, &profile::POWERSHELL), "Write-Host hi");
+    assert_eq!(
+        minify(source, &profile::POWERSHELL),
+        "Write-Host hi"
+    );
 }
 
 #[test]
@@ -113,16 +120,12 @@ fn batch_removes_rem_and_colon_comments() {
 #[test]
 fn vim_only_removes_line_start_quote() {
     let source = "\" comment\nlet x = \"abc\"\n";
-    assert_eq!(
-        minify(source, &profile::VIM),
-        "let x = \"abc\""
-    );
+    assert_eq!(minify(source, &profile::VIM), "let x = \"abc\"");
 }
 
 #[test]
 fn hcl_removes_hash_slash_and_block_comments() {
-    let source =
-        "# c\n// c2\nkey = \"a#b\" // trailing\n/* block\nend */\nvalue = 1\n";
+    let source = "# c\n// c2\nkey = \"a#b\" // trailing\n/* block\nend */\nvalue = 1\n";
     assert_eq!(
         minify(source, &profile::HCL),
         "key = \"a#b\"\nvalue = 1"
@@ -139,8 +142,7 @@ fn wat_removes_line_comments() {
 
 #[test]
 fn wat_removes_inline_block_comments() {
-    let result =
-        minify("(module (; x ;) (func))\n", &profile::WAT);
+    let result = minify("(module (; x ;) (func))\n", &profile::WAT);
     assert!(!result.contains('x'));
     assert!(result.starts_with("(module"));
     assert!(result.contains("(func))"));
@@ -197,18 +199,12 @@ fn nix_removes_hash_comments() {
 #[test]
 fn tcl_only_removes_line_start_comments() {
     let source = "# c\nset x \"#value\"\n";
-    assert_eq!(
-        minify(source, &profile::TCL),
-        "set x \"#value\""
-    );
+    assert_eq!(minify(source, &profile::TCL), "set x \"#value\"");
 }
 
 #[test]
 fn trims_trailing_whitespace() {
-    assert_eq!(
-        minify("a = 1   \n", &profile::INI),
-        "a = 1"
-    );
+    assert_eq!(minify("a = 1   \n", &profile::INI), "a = 1");
 }
 
 #[test]
@@ -227,10 +223,7 @@ fn empty_input_returns_empty() {
 
 #[test]
 fn removes_bom() {
-    assert_eq!(
-        minify("\u{feff}key: 1\n", &profile::YAML),
-        "key: 1"
-    );
+    assert_eq!(minify("\u{feff}key: 1\n", &profile::YAML), "key: 1");
 }
 
 #[test]

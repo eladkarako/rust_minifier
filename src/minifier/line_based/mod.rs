@@ -25,12 +25,13 @@ impl Minifier for LineBasedMinifier {
         source: &str,
         options: &MinifierOptions,
     ) -> Result<String> {
-        let profile = profile::profile_for(self.language).ok_or_else(|| {
-            anyhow::anyhow!(
-                "No line based profile for language: {}",
-                self.language
-            )
-        })?;
+        let profile = profile::profile_for(self.language)
+            .ok_or_else(|| {
+                anyhow::anyhow!(
+                    "No line based profile for language: {}",
+                    self.language
+                )
+            })?;
         Ok(minify_line_based(source, profile, options))
     }
 }
@@ -59,8 +60,8 @@ fn starts_with_ci_at(
     for expected in needle.chars() {
         match chars.get(position + offset) {
             Some(actual)
-                if actual.to_ascii_lowercase()
-                    == expected.to_ascii_lowercase() => {}
+            if actual.to_ascii_lowercase()
+                == expected.to_ascii_lowercase() => {}
             _ => return false,
         }
         offset += 1;
@@ -113,7 +114,8 @@ fn strip_line_comments(
         if let Some(active_quote) = quote {
             output.push(character);
             if profile.backslash_escapes && character == '\\' {
-                if let Some(next) = chars.get(position + 1).copied() {
+                if let Some(next) = chars.get(position + 1).copied()
+                {
                     output.push(next);
                     position += 2;
                     continue;
@@ -130,7 +132,9 @@ fn strip_line_comments(
         for (open, close) in profile.block_comments {
             if starts_with_at(&chars, position, open) {
                 let after_open = position + open.chars().count();
-                if let Some(end) = find_from(&chars, after_open, close) {
+                if let Some(end) =
+                    find_from(&chars, after_open, close)
+                {
                     position = end + close.chars().count();
                 } else {
                     *in_block = Some((*open, *close));
@@ -150,7 +154,9 @@ fn strip_line_comments(
                 let at_line_start = output.trim().is_empty();
                 let previous_is_boundary = position == 0
                     || chars[position - 1].is_whitespace();
-                let accepted = if profile.line_comment_line_start_only {
+                let accepted = if profile
+                    .line_comment_line_start_only
+                {
                     at_line_start
                 } else if profile.line_comment_requires_boundary {
                     previous_is_boundary
@@ -200,7 +206,9 @@ fn strip_line_comments(
 }
 
 fn leading_spaces(line: &str) -> usize {
-    line.chars().take_while(|character| *character == ' ').count()
+    line.chars()
+        .take_while(|character| *character == ' ')
+        .count()
 }
 
 fn detect_heredoc(line: &str) -> Option<String> {
@@ -235,7 +243,8 @@ fn detect_heredoc(line: &str) -> Option<String> {
             }
             let mut delimiter = String::new();
             if let Some(&quote_character) = chars.get(cursor) {
-                if quote_character == '"' || quote_character == '\'' {
+                if quote_character == '"' || quote_character == '\''
+                {
                     cursor += 1;
                     while cursor < chars.len()
                         && chars[cursor] != quote_character
@@ -334,7 +343,9 @@ pub fn minify_line_based(
             block_scalar_indent = None;
         }
 
-        if first_output && output.is_empty() && is_first_line_directive(raw_line)
+        if first_output
+            && output.is_empty()
+            && is_first_line_directive(raw_line)
         {
             output.push(raw_line.trim_end().to_string());
             first_output = false;
@@ -355,7 +366,9 @@ pub fn minify_line_based(
             line = combined;
         }
 
-        if profile.join_backslash_continuations && line.ends_with('\\') {
+        if profile.join_backslash_continuations
+            && line.ends_with('\\')
+        {
             line.pop();
             pending = Some(line);
             continue;
@@ -378,7 +391,9 @@ pub fn minify_line_based(
             }
         }
 
-        if profile.yaml_block_scalar && yaml_block_scalar_start(&line) {
+        if profile.yaml_block_scalar
+            && yaml_block_scalar_start(&line)
+        {
             block_scalar_indent = Some(leading_spaces(&line));
         }
 

@@ -19,13 +19,19 @@ fn removes_javascript_line_and_block_comments() {
 #[test]
 fn removes_comments_before_joining_lines() {
     let source = "const a = 1;\n// between\nconst b = 2;\n";
-    assert_eq!(minify(source, &profile::JAVASCRIPT), "const a=1;const b=2;");
+    assert_eq!(
+        minify(source, &profile::JAVASCRIPT),
+        "const a=1;const b=2;"
+    );
 }
 
 #[test]
 fn inserts_semicolon_for_javascript_asi() {
     let source = "const a = 1\nconst b = 2\n";
-    assert_eq!(minify(source, &profile::JAVASCRIPT), "const a=1;const b=2");
+    assert_eq!(
+        minify(source, &profile::JAVASCRIPT),
+        "const a=1;const b=2"
+    );
 }
 
 #[test]
@@ -58,25 +64,37 @@ fn inserts_semicolon_before_increment_on_new_line() {
 #[test]
 fn keeps_comment_markers_inside_javascript_strings() {
     let source = "let s = \"// not a comment\"; // real\n";
-    assert_eq!(minify(source, &profile::JAVASCRIPT), "let s=\"// not a comment\";");
+    assert_eq!(
+        minify(source, &profile::JAVASCRIPT),
+        "let s=\"// not a comment\";"
+    );
 }
 
 #[test]
 fn keeps_comment_markers_inside_javascript_regex() {
     let source = "const re = /a\\/\\/b/g; // real\n";
-    assert_eq!(minify(source, &profile::JAVASCRIPT), "const re=/a\\/\\/b/g;");
+    assert_eq!(
+        minify(source, &profile::JAVASCRIPT),
+        "const re=/a\\/\\/b/g;"
+    );
 }
 
 #[test]
 fn keeps_javascript_template_literal_newlines() {
     let source = "const text = `a\nb`;\n";
-    assert_eq!(minify(source, &profile::JAVASCRIPT), "const text=`a\nb`;");
+    assert_eq!(
+        minify(source, &profile::JAVASCRIPT),
+        "const text=`a\nb`;"
+    );
 }
 
 #[test]
 fn removes_jsx_comment_containers() {
     let source = "const view = <div>{/* hello */}</div>;\n";
-    assert_eq!(minify(source, &profile::JAVASCRIPT), "const view=<div>{}</div>;");
+    assert_eq!(
+        minify(source, &profile::JAVASCRIPT),
+        "const view=<div>{}</div>;"
+    );
 }
 
 #[test]
@@ -88,7 +106,10 @@ fn joins_java_lines_without_adding_semicolons() {
 #[test]
 fn preserves_java_text_blocks() {
     let source = "String s = \"\"\"\nhello\n\"\"\";\n";
-    assert_eq!(minify(source, &profile::JAVA), "String s=\"\"\"\nhello\n\"\"\";");
+    assert_eq!(
+        minify(source, &profile::JAVA),
+        "String s=\"\"\"\nhello\n\"\"\";"
+    );
 }
 
 #[test]
@@ -100,7 +121,10 @@ fn inserts_semicolon_for_kotlin_newline_statements() {
 #[test]
 fn does_not_insert_semicolon_before_kotlin_else() {
     let source = "if (x) {\n  a()\n}\nelse {\n  b()\n}\n";
-    assert_eq!(minify(source, &profile::KOTLIN), "if(x){a()}else{b()}");
+    assert_eq!(
+        minify(source, &profile::KOTLIN),
+        "if(x){a()}else{b()}"
+    );
 }
 
 #[test]
@@ -121,7 +145,10 @@ fn keeps_preprocessor_lines_on_their_own_line() {
 #[test]
 fn keeps_csharp_verbatim_strings() {
     let source = "var s = @\"C:\\path\"; // c\n";
-    assert_eq!(minify(source, &profile::CSHARP), "var s=@\"C:\\path\";");
+    assert_eq!(
+        minify(source, &profile::CSHARP),
+        "var s=@\"C:\\path\";"
+    );
 }
 
 #[test]
@@ -145,7 +172,10 @@ fn separates_dangerous_adjacent_operators() {
 #[test]
 fn keeps_space_between_word_and_string() {
     let source = "return \"x\";\n";
-    assert_eq!(minify(source, &profile::JAVASCRIPT), "return \"x\";");
+    assert_eq!(
+        minify(source, &profile::JAVASCRIPT),
+        "return \"x\";"
+    );
 }
 
 #[test]
@@ -166,14 +196,19 @@ fn returns_empty_for_empty_source() {
 
 #[test]
 fn removes_bom_before_lexing() {
-    let source = "\u{feff}const x = 1;\n";
+    let source = "\u{feff}
+
+const x = 1;\n";
     assert_eq!(minify(source, &profile::JAVASCRIPT), "const x=1;");
 }
 
 #[test]
 fn handles_swift_raw_hash_strings() {
     let source = "let s = #\"a // b\"# // real\n";
-    assert_eq!(minify(source, &profile::SWIFT), "let s=#\"a // b\"#");
+    assert_eq!(
+        minify(source, &profile::SWIFT),
+        "let s=#\"a // b\"#"
+    );
 }
 
 #[test]

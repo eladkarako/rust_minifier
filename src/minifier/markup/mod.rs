@@ -168,7 +168,10 @@ fn is_raw_element(name: &str) -> bool {
     )
 }
 
-fn looks_like_tag_start(chars: &[char], position: usize) -> bool {
+fn looks_like_tag_start(
+    chars: &[char],
+    position: usize,
+) -> bool {
     if chars.get(position) != Some(&'<') {
         return false;
     }
@@ -232,13 +235,16 @@ fn normalize_tag(raw: &str) -> String {
             output.push('=');
             pending_space = false;
             position += 1;
-            while position < chars.len() && chars[position].is_whitespace() {
+            while position < chars.len()
+                && chars[position].is_whitespace()
+            {
                 position += 1;
             }
             continue;
         }
 
-        if character == '/' && chars.get(position + 1) == Some(&'>') {
+        if character == '/' && chars.get(position + 1) == Some(&'>')
+        {
             while output.ends_with(' ') {
                 output.pop();
             }
@@ -355,7 +361,8 @@ fn find_element_close(
             for expected in name.chars() {
                 match chars.get(cursor) {
                     Some(actual)
-                        if actual.to_ascii_lowercase() == expected => {}
+                    if actual.to_ascii_lowercase()
+                        == expected => {}
                     _ => {
                         matched = false;
                         break;
@@ -365,10 +372,11 @@ fn find_element_close(
             }
             if matched
                 && chars
-                    .get(cursor)
-                    .is_some_and(|character| {
-                        character.is_whitespace() || *character == '>'
-                    })
+                .get(cursor)
+                .is_some_and(|character| {
+                    character.is_whitespace()
+                        || *character == '>'
+                })
             {
                 let mut end = cursor;
                 while end < chars.len() && chars[end] != '>' {
@@ -391,14 +399,19 @@ fn match_template_or_comment(
     if starts_with_at(chars, position, "<!--") {
         // Keep IE conditional comments; they contain markup meant for a
         // specific browser rather than human commentary.
-        let is_conditional = starts_with_at(chars, position, "<!--[if")
-            || starts_with_at(chars, position, "<![endif");
+        let is_conditional =
+            starts_with_at(chars, position, "<!--[if")
+                || starts_with_at(chars, position, "<![endif");
         if let Some(end) = find_from(chars, position + 4, "-->") {
             let new_position = end + 3;
             if is_conditional {
-                let text: String =
-                    chars[position..new_position].iter().collect();
-                return Some((TemplateAction::Template(text), new_position));
+                let text: String = chars[position..new_position]
+                    .iter()
+                    .collect();
+                return Some((
+                    TemplateAction::Template(text),
+                    new_position,
+                ));
             }
             return Some((TemplateAction::Comment, new_position));
         }
@@ -415,7 +428,9 @@ fn match_template_or_comment(
     ];
     for (open, close) in comment_markers {
         if starts_with_at(chars, position, open) {
-            if let Some(end) = find_from(chars, position + open.len(), close) {
+            if let Some(end) =
+                find_from(chars, position + open.len(), close)
+            {
                 return Some((
                     TemplateAction::Comment,
                     end + close.len(),
@@ -435,11 +450,17 @@ fn match_template_or_comment(
     ];
     for (open, close) in template_markers {
         if starts_with_at(chars, position, open) {
-            if let Some(end) = find_from(chars, position + open.len(), close) {
+            if let Some(end) =
+                find_from(chars, position + open.len(), close)
+            {
                 let new_position = end + close.len();
-                let text: String =
-                    chars[position..new_position].iter().collect();
-                return Some((TemplateAction::Template(text), new_position));
+                let text: String = chars[position..new_position]
+                    .iter()
+                    .collect();
+                return Some((
+                    TemplateAction::Template(text),
+                    new_position,
+                ));
             }
         }
     }
@@ -512,7 +533,9 @@ fn process_raw_content(
                 minify_css(content, CssDialect::Css, options)
             }
         }
-        "title" => collapse_whitespace(&strip_comments_only(content)),
+        "title" => {
+            collapse_whitespace(&strip_comments_only(content))
+        }
         "pre" | "textarea" | "xmp" | "plaintext" => {
             strip_comments_only(content)
         }
@@ -570,7 +593,10 @@ fn is_html_family(language: &str) -> bool {
     )
 }
 
-fn token_is_inline(token: &Token, inline_aware: bool) -> bool {
+fn token_is_inline(
+    token: &Token,
+    inline_aware: bool,
+) -> bool {
     if !inline_aware {
         return false;
     }
@@ -614,7 +640,10 @@ fn normalize_text(
     output
 }
 
-fn reconstruct(tokens: &[Token], inline_aware: bool) -> String {
+fn reconstruct(
+    tokens: &[Token],
+    inline_aware: bool,
+) -> String {
     let mut output = String::new();
     for (index, token) in tokens.iter().enumerate() {
         match token {
@@ -624,15 +653,22 @@ fn reconstruct(tokens: &[Token], inline_aware: bool) -> String {
                 let previous_inline = index
                     .checked_sub(1)
                     .is_some_and(|previous| {
-                        token_is_inline(&tokens[previous], inline_aware)
+                        token_is_inline(
+                            &tokens[previous],
+                            inline_aware,
+                        )
                     });
-                let next_inline = tokens
-                    .get(index + 1)
-                    .is_some_and(|next| {
-                        token_is_inline(next, inline_aware)
-                    });
-                let piece =
-                    normalize_text(text, previous_inline, next_inline);
+                let next_inline =
+                    tokens
+                        .get(index + 1)
+                        .is_some_and(|next| {
+                            token_is_inline(next, inline_aware)
+                        });
+                let piece = normalize_text(
+                    text,
+                    previous_inline,
+                    next_inline,
+                );
                 if piece.is_empty() {
                     continue;
                 }
@@ -640,7 +676,8 @@ fn reconstruct(tokens: &[Token], inline_aware: bool) -> String {
                     if !output.is_empty() && !output.ends_with(' ') {
                         output.push(' ');
                     }
-                } else if output.is_empty() || output.ends_with(' ') {
+                } else if output.is_empty() || output.ends_with(' ')
+                {
                     output.push_str(piece.trim_start());
                 } else {
                     output.push_str(&piece);
@@ -703,7 +740,9 @@ pub fn minify_markup(
                 parse_tag(&chars, position)
             {
                 if !text.is_empty() {
-                    tokens.push(Token::Text(std::mem::take(&mut text)));
+                    tokens.push(Token::Text(std::mem::take(
+                        &mut text,
+                    )));
                 }
 
                 let is_raw = !tag.closing
@@ -712,18 +751,19 @@ pub fn minify_markup(
 
                 if is_raw {
                     if let Some((content_end, close_end)) =
-                        find_element_close(&chars, next_position, &tag.name)
-                    {
-                        let content: String =
-                            chars[next_position..content_end]
-                                .iter()
-                                .collect();
-                        let processed = process_raw_content(
+                        find_element_close(
+                            &chars,
+                            next_position,
                             &tag.name,
-                            &tag.text,
-                            &content,
-                            language,
-                            options,
+                        )
+                    {
+                        let content: String = chars
+                            [next_position..content_end]
+                            .iter()
+                            .collect();
+                        let processed = process_raw_content(
+                            &tag.name, &tag.text, &content,
+                            language, options,
                         );
                         let name = tag.name.clone();
                         tokens.push(Token::Tag {
@@ -735,8 +775,10 @@ pub fn minify_markup(
                         if !processed.is_empty() {
                             tokens.push(Token::Opaque(processed));
                         }
-                        let close_raw: String =
-                            chars[content_end..close_end].iter().collect();
+                        let close_raw: String = chars
+                            [content_end..close_end]
+                            .iter()
+                            .collect();
                         tokens.push(Token::Tag {
                             text: normalize_tag(&close_raw),
                             name,
@@ -751,10 +793,7 @@ pub fn minify_markup(
                     let content: String =
                         chars[next_position..].iter().collect();
                     let processed = process_raw_content(
-                        &tag.name,
-                        &tag.text,
-                        &content,
-                        language,
+                        &tag.name, &tag.text, &content, language,
                         options,
                     );
                     tokens.push(Token::Tag {

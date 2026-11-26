@@ -28,10 +28,7 @@ fn removing_comment_between_text_does_not_add_space() {
 
 #[test]
 fn collapses_text_whitespace() {
-    assert_eq!(
-        minify("<p>hello   world</p>"),
-        "<p>hello world</p>"
-    );
+    assert_eq!(minify("<p>hello   world</p>"), "<p>hello world</p>");
 }
 
 #[test]
@@ -97,7 +94,9 @@ fn minifies_inline_style() {
 #[test]
 fn minifies_script_json_payload() {
     assert_eq!(
-        minify("<script type=\"application/ld+json\">{ \"a\": 1 }</script>"),
+        minify(
+            "<script type=\"application/ld+json\">{ \"a\": 1 }</script>"
+        ),
         "<script type=\"application/ld+json\">{\"a\":1}</script>"
     );
 }
@@ -105,7 +104,9 @@ fn minifies_script_json_payload() {
 #[test]
 fn minifies_typescript_script_block() {
     assert_eq!(
-        minify("<script lang=\"ts\">// c\nconst x: number = 1;</script>"),
+        minify(
+            "<script lang=\"ts\">// c\nconst x: number = 1;</script>"
+        ),
         "<script lang=\"ts\">const x:number=1;</script>"
     );
 }
@@ -113,7 +114,9 @@ fn minifies_typescript_script_block() {
 #[test]
 fn minifies_scss_style_block() {
     assert_eq!(
-        minify("<style lang=\"scss\">// c\n.a { .b { color: red; } }</style>"),
+        minify(
+            "<style lang=\"scss\">// c\n.a { .b { color: red; } }</style>"
+        ),
         "<style lang=\"scss\">.a{.b{color:red}}</style>"
     );
 }
@@ -150,10 +153,7 @@ fn preserves_attribute_values_with_spaces() {
 
 #[test]
 fn preserves_template_tags() {
-    assert_eq!(
-        minify("<div>{{ x }}</div>"),
-        "<div>{{ x }}</div>"
-    );
+    assert_eq!(minify("<div>{{ x }}</div>"), "<div>{{ x }}</div>");
 }
 
 #[test]
@@ -166,10 +166,7 @@ fn preserves_twig_tags() {
 
 #[test]
 fn removes_twig_comments() {
-    assert_eq!(
-        minify("<div>{# hidden #}a</div>"),
-        "<div>a</div>"
-    );
+    assert_eq!(minify("<div>{# hidden #}a</div>"), "<div>a</div>");
 }
 
 #[test]
@@ -182,10 +179,7 @@ fn removes_handlebars_comments() {
 
 #[test]
 fn removes_ejs_comments() {
-    assert_eq!(
-        minify("<div><%# hidden %>a</div>"),
-        "<div>a</div>"
-    );
+    assert_eq!(minify("<div><%# hidden %>a</div>"), "<div>a</div>");
 }
 
 #[test]
@@ -198,10 +192,7 @@ fn preserves_ejs_code() {
 
 #[test]
 fn preserves_razor_comments_removed() {
-    assert_eq!(
-        minify("<div>@* hidden *@a</div>"),
-        "<div>a</div>"
-    );
+    assert_eq!(minify("<div>@* hidden *@a</div>"), "<div>a</div>");
 }
 
 #[test]
@@ -259,10 +250,7 @@ fn keeps_text_next_to_inline_tags() {
 
 #[test]
 fn removes_bom() {
-    assert_eq!(
-        minify("\u{feff}<div>a</div>"),
-        "<div>a</div>"
-    );
+    assert_eq!(minify("\u{feff}<div>a</div>"), "<div>a</div>");
 }
 
 #[test]

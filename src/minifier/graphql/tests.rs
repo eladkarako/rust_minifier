@@ -8,18 +8,12 @@ fn minify(source: &str) -> String {
 
 #[test]
 fn removes_comments() {
-    assert_eq!(
-        minify("# header\nquery { a }"),
-        "query{a}"
-    );
+    assert_eq!(minify("# header\nquery { a }"), "query{a}");
 }
 
 #[test]
 fn keeps_word_boundaries() {
-    assert_eq!(
-        minify("query Foo {\n  bar\n}"),
-        "query Foo{bar}"
-    );
+    assert_eq!(minify("query Foo {\n  bar\n}"), "query Foo{bar}");
 }
 
 #[test]
@@ -48,10 +42,7 @@ fn handles_directives() {
 
 #[test]
 fn removes_space_around_colon() {
-    assert_eq!(
-        minify("f ( a : 1 )"),
-        "f(a:1)"
-    );
+    assert_eq!(minify("f ( a : 1 )"), "f(a:1)");
 }
 
 #[test]
@@ -64,10 +55,7 @@ fn keeps_comment_markers_inside_strings() {
 
 #[test]
 fn keeps_escaped_quotes_inside_strings() {
-    assert_eq!(
-        minify("f(a: \"a\\\"b\")"),
-        "f(a:\"a\\\"b\")"
-    );
+    assert_eq!(minify("f(a: \"a\\\"b\")"), "f(a:\"a\\\"b\")");
 }
 
 #[test]
@@ -93,18 +81,12 @@ fn returns_empty_for_empty_input() {
 
 #[test]
 fn removes_bom() {
-    assert_eq!(
-        minify("\u{feff}query { a }"),
-        "query{a}"
-    );
+    assert_eq!(minify("\u{feff}query { a }"), "query{a}");
 }
 
 #[test]
 fn keeps_arguments_compact() {
-    assert_eq!(
-        minify("f(a: 1, b: 2)"),
-        "f(a:1,b:2)"
-    );
+    assert_eq!(minify("f(a: 1, b: 2)"), "f(a:1,b:2)");
 }
 
 #[test]

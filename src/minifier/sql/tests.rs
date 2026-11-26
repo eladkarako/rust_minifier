@@ -16,18 +16,12 @@ fn collapses_whitespace() {
 
 #[test]
 fn removes_line_comments() {
-    assert_eq!(
-        minify("-- header\nSELECT 1;"),
-        "SELECT 1;"
-    );
+    assert_eq!(minify("-- header\nSELECT 1;"), "SELECT 1;");
 }
 
 #[test]
 fn removes_block_comments() {
-    assert_eq!(
-        minify("SELECT /* c */ 1;"),
-        "SELECT 1;"
-    );
+    assert_eq!(minify("SELECT /* c */ 1;"), "SELECT 1;");
 }
 
 #[test]
@@ -40,18 +34,12 @@ fn keeps_comment_markers_inside_strings() {
 
 #[test]
 fn keeps_block_comment_markers_inside_strings() {
-    assert_eq!(
-        minify("SELECT '/* not */';"),
-        "SELECT '/* not */';"
-    );
+    assert_eq!(minify("SELECT '/* not */';"), "SELECT '/* not */';");
 }
 
 #[test]
 fn handles_doubled_quote_escape() {
-    assert_eq!(
-        minify("SELECT 'it''s';"),
-        "SELECT 'it''s';"
-    );
+    assert_eq!(minify("SELECT 'it''s';"), "SELECT 'it''s';");
 }
 
 #[test]
@@ -96,26 +84,17 @@ fn keeps_bracket_identifiers() {
 
 #[test]
 fn keeps_dollar_quoted_strings() {
-    assert_eq!(
-        minify("SELECT $$a--b$$;"),
-        "SELECT $$a--b$$;"
-    );
+    assert_eq!(minify("SELECT $$a--b$$;"), "SELECT $$a--b$$;");
 }
 
 #[test]
 fn removes_mysql_hash_comments() {
-    assert_eq!(
-        minify("# header\nSELECT 1;"),
-        "SELECT 1;"
-    );
+    assert_eq!(minify("# header\nSELECT 1;"), "SELECT 1;");
 }
 
 #[test]
 fn keeps_operator_separation() {
-    assert_eq!(
-        minify("SELECT a - -1;"),
-        "SELECT a - -1;"
-    );
+    assert_eq!(minify("SELECT a - -1;"), "SELECT a - -1;");
 }
 
 #[test]
@@ -142,10 +121,7 @@ fn returns_empty_for_empty_input() {
 
 #[test]
 fn removes_bom() {
-    assert_eq!(
-        minify("\u{feff}SELECT 1;"),
-        "SELECT 1;"
-    );
+    assert_eq!(minify("\u{feff}SELECT 1;"), "SELECT 1;");
 }
 
 #[test]

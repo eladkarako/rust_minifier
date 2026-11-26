@@ -74,7 +74,8 @@ fn consume_quoted(
             continue;
         }
         if character == close {
-            if doubled_escape && chars.get(position) == Some(&close) {
+            if doubled_escape && chars.get(position) == Some(&close)
+            {
                 text.push(close);
                 position += 1;
                 continue;
@@ -137,7 +138,8 @@ fn tokenize(source: &str) -> Vec<Token> {
             continue;
         }
 
-        if character == '-' && chars.get(position + 1) == Some(&'-') {
+        if character == '-' && chars.get(position + 1) == Some(&'-')
+        {
             while position < chars.len()
                 && chars[position] != '\n'
                 && chars[position] != '\r'
@@ -159,7 +161,8 @@ fn tokenize(source: &str) -> Vec<Token> {
             continue;
         }
 
-        if character == '/' && chars.get(position + 1) == Some(&'*') {
+        if character == '/' && chars.get(position + 1) == Some(&'*')
+        {
             position += 2;
             while position < chars.len() {
                 if chars[position] == '*'
@@ -168,7 +171,8 @@ fn tokenize(source: &str) -> Vec<Token> {
                     position += 2;
                     break;
                 }
-                if chars[position] == '\n' || chars[position] == '\r' {
+                if chars[position] == '\n' || chars[position] == '\r'
+                {
                     had_newline = true;
                 }
                 position += 1;
@@ -178,8 +182,9 @@ fn tokenize(source: &str) -> Vec<Token> {
         }
 
         if character == '\'' {
-            let (text, next) =
-                consume_quoted(&chars, position, '\'', '\'', true, true);
+            let (text, next) = consume_quoted(
+                &chars, position, '\'', '\'', true, true,
+            );
             tokens.push(Token {
                 kind: TokenKind::String,
                 text,
@@ -193,8 +198,9 @@ fn tokenize(source: &str) -> Vec<Token> {
         }
 
         if character == '"' {
-            let (text, next) =
-                consume_quoted(&chars, position, '"', '"', true, true);
+            let (text, next) = consume_quoted(
+                &chars, position, '"', '"', true, true,
+            );
             tokens.push(Token {
                 kind: TokenKind::String,
                 text,
@@ -208,8 +214,9 @@ fn tokenize(source: &str) -> Vec<Token> {
         }
 
         if character == '`' {
-            let (text, next) =
-                consume_quoted(&chars, position, '`', '`', false, true);
+            let (text, next) = consume_quoted(
+                &chars, position, '`', '`', false, true,
+            );
             tokens.push(Token {
                 kind: TokenKind::String,
                 text,
@@ -223,8 +230,9 @@ fn tokenize(source: &str) -> Vec<Token> {
         }
 
         if character == '[' {
-            let (text, next) =
-                consume_quoted(&chars, position, '[', ']', false, true);
+            let (text, next) = consume_quoted(
+                &chars, position, '[', ']', false, true,
+            );
             tokens.push(Token {
                 kind: TokenKind::String,
                 text,
@@ -287,7 +295,10 @@ fn tokenize(source: &str) -> Vec<Token> {
     tokens
 }
 
-fn needs_space(previous: &Token, next: &Token) -> bool {
+fn needs_space(
+    previous: &Token,
+    next: &Token,
+) -> bool {
     if !next.preceded_by_space {
         return false;
     }
@@ -307,12 +318,16 @@ fn needs_space(previous: &Token, next: &Token) -> bool {
     true
 }
 
-fn reconstruct(tokens: &[Token], options: &MinifierOptions) -> String {
+fn reconstruct(
+    tokens: &[Token],
+    options: &MinifierOptions,
+) -> String {
     let mut output = String::new();
     let mut previous: Option<&Token> = None;
 
     for token in tokens {
-        if options.preserve_line_breaks && token.preceded_by_newline {
+        if options.preserve_line_breaks && token.preceded_by_newline
+        {
             if !output.is_empty() && !output.ends_with('\n') {
                 output.push('\n');
             }

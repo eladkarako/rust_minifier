@@ -84,7 +84,10 @@ fn test_args_exclude_single_pattern() {
     args.exclude = vec!["test".to_string()];
 
     assert_eq!(args.exclude.len(), 1);
-    assert!(args.exclude.contains(&"test".to_string()));
+    assert!(
+        args.exclude
+            .contains(&"test".to_string())
+    );
 }
 
 /// Test exclude field accepts multiple patterns.
@@ -98,9 +101,18 @@ fn test_args_exclude_multiple_patterns() {
     ];
 
     assert_eq!(args.exclude.len(), 3);
-    assert!(args.exclude.contains(&"test".to_string()));
-    assert!(args.exclude.contains(&"mock".to_string()));
-    assert!(args.exclude.contains(&"temp".to_string()));
+    assert!(
+        args.exclude
+            .contains(&"test".to_string())
+    );
+    assert!(
+        args.exclude
+            .contains(&"mock".to_string())
+    );
+    assert!(
+        args.exclude
+            .contains(&"temp".to_string())
+    );
 }
 
 /// Test single file in args.
@@ -122,8 +134,16 @@ fn test_args_multiple_files() {
     ];
 
     assert_eq!(args.files.len(), 3);
-    assert!(args.files.iter().any(|f| f.ends_with(".rs")));
-    assert!(args.files.iter().any(|f| f.ends_with(".toml")));
+    assert!(
+        args.files
+            .iter()
+            .any(|f| f.ends_with(".rs"))
+    );
+    assert!(
+        args.files
+            .iter()
+            .any(|f| f.ends_with(".toml"))
+    );
 }
 
 /// Test custom suffix.
@@ -220,10 +240,26 @@ fn test_args_various_file_paths() {
     ];
 
     assert_eq!(args.files.len(), 4);
-    assert!(args.files.iter().any(|f| f.starts_with("./")));
-    assert!(args.files.iter().any(|f| f.starts_with("../")));
-    assert!(args.files.iter().any(|f| f.starts_with("C:\\")));
-    assert!(args.files.iter().any(|f| f.starts_with("/")));
+    assert!(
+        args.files
+            .iter()
+            .any(|f| f.starts_with("./"))
+    );
+    assert!(
+        args.files
+            .iter()
+            .any(|f| f.starts_with("../"))
+    );
+    assert!(
+        args.files
+            .iter()
+            .any(|f| f.starts_with("C:\\"))
+    );
+    assert!(
+        args.files
+            .iter()
+            .any(|f| f.starts_with("/"))
+    );
 }
 
 /// Test exclude patterns with mixed case.
@@ -293,10 +329,17 @@ fn test_args_include_source_path_override() {
 #[test]
 fn test_args_minifier_options_line_breaks() {
     let mut args = default_args();
-    assert!(!args.minifier_options().preserve_line_breaks);
+    assert!(
+        !args
+            .minifier_options()
+            .preserve_line_breaks
+    );
 
     args.preserve_line_breaks = true;
-    assert!(args.minifier_options().preserve_line_breaks);
+    assert!(
+        args.minifier_options()
+            .preserve_line_breaks
+    );
 }
 
 /// Test forced_type is optional by default.

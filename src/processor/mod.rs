@@ -96,12 +96,12 @@ pub async fn process_all(args: &Args) -> Result<()> {
     eprintln!("  Files:              {:?}", args.files);
     eprintln!("  Suffix:             {}", args.suffix);
     eprintln!("  Concat to:          {}", args.concat_to);
-    eprintln!("  Include file path:  {}", args.include_source_path());
-    eprintln!("  Soft split:         {}", args.soft_split);
     eprintln!(
-        "  Preserve newlines:  {}",
-        args.preserve_line_breaks
+        "  Include file path:  {}",
+        args.include_source_path()
     );
+    eprintln!("  Soft split:         {}", args.soft_split);
+    eprintln!("  Preserve newlines:  {}", args.preserve_line_breaks);
     if let Some(ref forced) = args.forced_type {
         eprintln!("  Forced type:        {}", forced);
     }
@@ -219,7 +219,11 @@ pub async fn process_all(args: &Args) -> Result<()> {
         // Create sorted copy to show order
         let mut sorted = processed_files.clone();
         sorted.sort_by(|a, b| {
-            match a.language.category.cmp(&b.language.category) {
+            match a
+                .language
+                .category
+                .cmp(&b.language.category)
+            {
                 std::cmp::Ordering::Equal => {
                     alphanumeric_sort::compare_str(
                         &a.file_path,
@@ -265,7 +269,11 @@ fn sort_and_write_concatenated(
     // Sort: first by language category, then by file path using
     // natural/alphanumeric ordering (UTF-8 aware).
     sorted.sort_by(|a, b| {
-        match a.language.category.cmp(&b.language.category) {
+        match a
+            .language
+            .category
+            .cmp(&b.language.category)
+        {
             std::cmp::Ordering::Equal => {
                 compare_str(&a.file_path, &b.file_path)
             }
@@ -296,7 +304,8 @@ fn expand_path(
     } else if p.is_file() {
         let supported = accept_any_file
             || language::detect_language(p).is_some();
-        if supported && !should_exclude_file(path, exclude_patterns) {
+        if supported && !should_exclude_file(path, exclude_patterns)
+        {
             expanded.push(path.to_string());
         }
     } else {
@@ -351,12 +360,23 @@ fn determine_output_extension(files: &[String]) -> String {
         [] => ".txt".to_string(),
         [only] => format!(
             ".{}",
-            only.extensions.first().copied().unwrap_or("txt")
+            only.extensions
+                .first()
+                .copied()
+                .unwrap_or("txt")
         ),
         [first, second] => format!(
             "._{}_and_{}.txt",
-            first.extensions.first().copied().unwrap_or(first.id),
-            second.extensions.first().copied().unwrap_or(second.id)
+            first
+                .extensions
+                .first()
+                .copied()
+                .unwrap_or(first.id),
+            second
+                .extensions
+                .first()
+                .copied()
+                .unwrap_or(second.id)
         ),
         _ => "._mixed.txt".to_string(),
     }
@@ -377,8 +397,9 @@ fn prepare_concat_destination(
 
     // If it's an existing directory or looks like a directory path
     if dest_path.exists() && dest_path.is_dir() {
-        let timestamp =
-            Local::now().format("%Y%m%d%H%M%S").to_string();
+        let timestamp = Local::now()
+            .format("%Y%m%d%H%M%S")
+            .to_string();
         let filename = format!("minified_{}{}", timestamp, ext);
         let full_path = dest_path.join(filename);
         return Ok(Some(full_path.to_string_lossy().to_string()));
@@ -396,8 +417,9 @@ fn prepare_concat_destination(
     // If the path ends with a separator, treat as directory and create it
     if concat_to.ends_with('/') || concat_to.ends_with('\\') {
         fs::create_dir_all(dest_path)?;
-        let timestamp =
-            Local::now().format("%Y%m%d%H%M%S").to_string();
+        let timestamp = Local::now()
+            .format("%Y%m%d%H%M%S")
+            .to_string();
         let filename = format!("minified_{}{}", timestamp, ext);
         let full_path = dest_path.join(filename);
         return Ok(Some(full_path.to_string_lossy().to_string()));
@@ -409,17 +431,21 @@ fn prepare_concat_destination(
 
 #[cfg(target_os = "windows")]
 const EOL: &str = "\r\n";
+
 #[cfg(target_os = "windows")]
 const SEPARATOR: &str = "\r\n\r\n\r\n";
 
 #[cfg(not(target_os = "windows"))]
 const EOL: &str = "\n";
+
 #[cfg(not(target_os = "windows"))]
 const SEPARATOR: &str = "\n\n\n";
 
 fn format_path_for_output(path: &str) -> String {
     if path.starts_with("\\\\?\\") {
-        path.strip_prefix("\\\\?\\").unwrap_or(path).to_string()
+        path.strip_prefix("\\\\?\\")
+            .unwrap_or(path)
+            .to_string()
     } else {
         path.to_string()
     }

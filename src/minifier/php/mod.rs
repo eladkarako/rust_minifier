@@ -50,8 +50,8 @@ fn starts_with_ci_at(
     for expected in needle.chars() {
         match chars.get(position + offset) {
             Some(actual)
-                if actual.to_ascii_lowercase()
-                    == expected.to_ascii_lowercase() => {}
+            if actual.to_ascii_lowercase()
+                == expected.to_ascii_lowercase() => {}
             _ => return false,
         }
         offset += 1;
@@ -75,7 +75,10 @@ fn php_open_tag(
     None
 }
 
-fn find_php_close(chars: &[char], start: usize) -> Option<usize> {
+fn find_php_close(
+    chars: &[char],
+    start: usize,
+) -> Option<usize> {
     let mut position = start;
     let mut quote: Option<char> = None;
 
@@ -114,9 +117,7 @@ fn find_php_close(chars: &[char], start: usize) -> Option<usize> {
             continue;
         }
 
-        if character == '/'
-            && chars[position + 1] == '/'
-        {
+        if character == '/' && chars[position + 1] == '/' {
             while position < chars.len()
                 && chars[position] != '\n'
                 && chars[position] != '\r'
@@ -126,8 +127,7 @@ fn find_php_close(chars: &[char], start: usize) -> Option<usize> {
             continue;
         }
 
-        if character == '#'
-            && chars.get(position + 1) != Some(&'[')
+        if character == '#' && chars.get(position + 1) != Some(&'[')
         {
             while position < chars.len()
                 && chars[position] != '\n'
@@ -160,7 +160,9 @@ fn replace_placeholders(
         if chars[position] == PLACEHOLDER_OPEN {
             let mut cursor = position + 1;
             let mut digits = String::new();
-            while cursor < chars.len() && chars[cursor].is_ascii_digit() {
+            while cursor < chars.len()
+                && chars[cursor].is_ascii_digit()
+            {
                 digits.push(chars[cursor]);
                 cursor += 1;
             }
@@ -207,8 +209,9 @@ pub fn minify_php(
                 None => (chars.len(), chars.len()),
             };
 
-            let inner: String =
-                chars[inner_start..inner_end].iter().collect();
+            let inner: String = chars[inner_start..inner_end]
+                .iter()
+                .collect();
             let code = minify_c_like(&inner, &profile::PHP, options);
 
             let mut block = String::new();

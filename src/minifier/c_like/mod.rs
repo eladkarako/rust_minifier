@@ -53,7 +53,10 @@ struct Lexer<'a> {
 }
 
 impl<'a> Lexer<'a> {
-    fn new(source: &'a str, profile: &'static CLikeProfile) -> Self {
+    fn new(
+        source: &'a str,
+        profile: &'static CLikeProfile,
+    ) -> Self {
         Self {
             chars: source.chars().collect(),
             position: 0,
@@ -68,8 +71,13 @@ impl<'a> Lexer<'a> {
         self.chars.get(self.position).copied()
     }
 
-    fn peek_at(&self, offset: usize) -> Option<char> {
-        self.chars.get(self.position + offset).copied()
+    fn peek_at(
+        &self,
+        offset: usize,
+    ) -> Option<char> {
+        self.chars
+            .get(self.position + offset)
+            .copied()
     }
 
     fn advance(&mut self) -> Option<char> {
@@ -78,7 +86,10 @@ impl<'a> Lexer<'a> {
         Some(character)
     }
 
-    fn starts_with(&self, text: &str) -> bool {
+    fn starts_with(
+        &self,
+        text: &str,
+    ) -> bool {
         let mut offset = 0;
         for expected in text.chars() {
             if self.peek_at(offset) != Some(expected) {
@@ -89,9 +100,12 @@ impl<'a> Lexer<'a> {
         true
     }
 
-    fn consume_while<F>(&mut self, mut predicate: F) -> String
-    where
-        F: FnMut(char) -> bool,
+    fn consume_while<F>(
+        &mut self,
+        mut predicate: F,
+    ) -> String
+        where
+            F: FnMut(char) -> bool,
     {
         let mut result = String::new();
         while let Some(character) = self.peek() {
@@ -164,7 +178,9 @@ impl<'a> Lexer<'a> {
         let mut had_newline = false;
         let mut depth = 1usize;
         while let Some(character) = self.peek() {
-            if self.profile.nested_block_comments && self.starts_with(open) {
+            if self.profile.nested_block_comments
+                && self.starts_with(open)
+            {
                 for _ in open.chars() {
                     self.advance();
                 }
@@ -215,7 +231,9 @@ impl<'a> Lexer<'a> {
     }
 
     fn try_consume_long_bracket_string(&mut self) -> Option<String> {
-        if !self.profile.long_bracket_strings || self.peek() != Some('[') {
+        if !self.profile.long_bracket_strings
+            || self.peek() != Some('[')
+        {
             return None;
         }
         let mut offset = 1usize;
@@ -246,7 +264,10 @@ impl<'a> Lexer<'a> {
                             break;
                         }
                     }
-                    if matches && self.peek_at(1 + equals_count) == Some(']') {
+                    if matches
+                        && self.peek_at(1 + equals_count)
+                        == Some(']')
+                    {
                         for _ in 0..(equals_count + 2) {
                             if let Some(character) = self.advance() {
                                 text.push(character);
@@ -275,18 +296,25 @@ impl<'a> Lexer<'a> {
             return Some(text);
         }
 
-        if self.profile.raw_hash_strings && self.peek() == Some('#') {
+        if self.profile.raw_hash_strings && self.peek() == Some('#')
+        {
             let mut hashes = 0usize;
             while self.peek_at(hashes) == Some('#') {
                 hashes += 1;
             }
             if self.peek_at(hashes) == Some('"') {
-                return Some(self.consume_raw_hash_string(hashes, '"'));
+                return Some(
+                    self.consume_raw_hash_string(hashes, '"'),
+                );
             }
         }
 
         if let Some(character) = self.peek() {
-            if self.profile.quote_chars.contains(&character) {
+            if self
+                .profile
+                .quote_chars
+                .contains(&character)
+            {
                 return Some(self.consume_quote(character));
             }
             if character == '`' && self.profile.backtick_strings {
@@ -300,14 +328,16 @@ impl<'a> Lexer<'a> {
             .iter()
             .copied()
             .collect();
-        prefixes.sort_by_key(|prefix| std::cmp::Reverse(prefix.len()));
+        prefixes
+            .sort_by_key(|prefix| std::cmp::Reverse(prefix.len()));
         for prefix in prefixes {
             if !self.starts_with(prefix) {
                 continue;
             }
             let after = self.peek_at(prefix.chars().count());
             let after_two = self.peek_at(prefix.chars().count() + 1);
-            let after_three = self.peek_at(prefix.chars().count() + 2);
+            let after_three =
+                self.peek_at(prefix.chars().count() + 2);
 
             let is_cpp_raw = self.profile.cpp_raw_strings
                 && prefix.ends_with('R')
@@ -350,7 +380,8 @@ impl<'a> Lexer<'a> {
 
             if after == Some('#') && self.profile.raw_hash_strings {
                 let mut hashes = 0usize;
-                while self.peek_at(prefix.chars().count() + hashes) == Some('#')
+                while self.peek_at(prefix.chars().count() + hashes)
+                    == Some('#')
                 {
                     hashes += 1;
                 }
@@ -359,15 +390,23 @@ impl<'a> Lexer<'a> {
                     for _ in 0..prefix.chars().count() {
                         self.advance();
                     }
-                    return Some(self.consume_raw_hash_string(hashes, '"'));
+                    return Some(
+                        self.consume_raw_hash_string(hashes, '"'),
+                    );
                 }
             }
         }
         None
     }
 
-    fn consume_quote(&mut self, quote: char) -> String {
-        if self.profile.triple_quote_chars.contains(&quote)
+    fn consume_quote(
+        &mut self,
+        quote: char,
+    ) -> String {
+        if self
+            .profile
+            .triple_quote_chars
+            .contains(&quote)
             && self.peek_at(1) == Some(quote)
             && self.peek_at(2) == Some(quote)
         {
@@ -399,7 +438,9 @@ impl<'a> Lexer<'a> {
                 continue;
             }
             if character == quote {
-                if doubled_quote_escapes && self.peek() == Some(quote) {
+                if doubled_quote_escapes
+                    && self.peek() == Some(quote)
+                {
                     text.push(self.advance().unwrap());
                     continue;
                 }
@@ -409,7 +450,10 @@ impl<'a> Lexer<'a> {
         text
     }
 
-    fn consume_triple_quote(&mut self, quote: char) -> String {
+    fn consume_triple_quote(
+        &mut self,
+        quote: char,
+    ) -> String {
         let mut text = String::new();
         for _ in 0..3 {
             if let Some(character) = self.advance() {
@@ -479,7 +523,10 @@ impl<'a> Lexer<'a> {
         text
     }
 
-    fn consume_cpp_raw_string(&mut self, prefix: &str) -> String {
+    fn consume_cpp_raw_string(
+        &mut self,
+        prefix: &str,
+    ) -> String {
         let mut text = String::from(prefix);
         if let Some(character) = self.advance() {
             text.push(character); // opening quote
@@ -576,7 +623,10 @@ impl<'a> Lexer<'a> {
     }
 }
 
-fn is_word_start(character: char, extra_characters: &str) -> bool {
+fn is_word_start(
+    character: char,
+    extra_characters: &str,
+) -> bool {
     character.is_alphanumeric()
         || character == '_'
         || extra_characters.contains(character)
@@ -625,13 +675,14 @@ fn regex_allowed_after(previous: Option<&Token>) -> bool {
                 | '<'
                 | '>'
         ),
-        TokenKind::String | TokenKind::Preprocessor => {
-            false
-        }
+        TokenKind::String | TokenKind::Preprocessor => false,
     }
 }
 
-fn tokenize(source: &str, profile: &'static CLikeProfile) -> Vec<Token> {
+fn tokenize(
+    source: &str,
+    profile: &'static CLikeProfile,
+) -> Vec<Token> {
     let mut lexer = Lexer::new(source, profile);
     let mut tokens = Vec::new();
     let mut had_space = false;
@@ -645,7 +696,8 @@ fn tokenize(source: &str, profile: &'static CLikeProfile) -> Vec<Token> {
             continue;
         }
 
-        if let Some(preprocessor) = lexer.try_consume_preprocessor() {
+        if let Some(preprocessor) = lexer.try_consume_preprocessor()
+        {
             let token = Token {
                 kind: TokenKind::Preprocessor,
                 text: preprocessor,
@@ -905,14 +957,15 @@ fn next_can_continue_statement(
         }
         TokenKind::String => false,
         TokenKind::Punct(character) => match character {
-            '.' | '?' | ':' | ',' | ')' | ']' | '}' | ';' | '=' | '+'
-            | '-' | '*' | '/' | '%' | '&' | '|' | '^' | '<' | '>' | '('
-            | '[' | '{' => {
+            '.' | '?' | ':' | ',' | ')' | ']' | '}' | ';' | '='
+            | '+' | '-' | '*' | '/' | '%' | '&' | '|' | '^'
+            | '<' | '>' | '(' | '[' | '{' => {
                 if (*character == '+' || *character == '-')
                     && next_next.is_some_and(|candidate| {
-                        candidate.kind == TokenKind::Punct(*character)
-                            && !candidate.preceded_by_space
-                    })
+                    candidate.kind
+                        == TokenKind::Punct(*character)
+                        && !candidate.preceded_by_space
+                })
                 {
                     // `a` newline `++b` is a new statement.
                     false
@@ -982,7 +1035,8 @@ fn reconstruct(
                 output.push('\n');
             }
         } else if pending_newline
-            && profile.statement_separator == StatementSeparator::Semicolon
+            && profile.statement_separator
+            == StatementSeparator::Semicolon
         {
             if let Some(previous_token) = previous {
                 let next_next = tokens.get(index + 1);

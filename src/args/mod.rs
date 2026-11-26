@@ -93,7 +93,9 @@ impl Args {
     }
 
     /// Build the shared minifier options from the CLI flags.
-    pub fn minifier_options(&self) -> crate::minifier::MinifierOptions {
+    pub fn minifier_options(
+        &self
+    ) -> crate::minifier::MinifierOptions {
         crate::minifier::MinifierOptions {
             preserve_line_breaks: self.preserve_line_breaks,
         }

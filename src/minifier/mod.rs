@@ -2,16 +2,27 @@ use anyhow::Result;
 use std::path::Path;
 
 pub mod c_like;
+
 pub mod css;
+
 pub mod graphql;
+
 pub mod json;
+
 pub mod language;
+
 pub mod line_based;
+
 pub mod markup;
+
 pub mod options;
+
 pub mod php;
+
 pub mod rust;
+
 pub mod sql;
+
 pub mod toml;
 
 pub use options::MinifierOptions;
@@ -39,7 +50,7 @@ pub trait Minifier {
 
 /// Build a minifier for a detected language.
 pub fn minifier_for_language(
-    language: &'static Language,
+    language: &'static Language
 ) -> Result<Box<dyn Minifier>> {
     let minifier: Box<dyn Minifier> = match language.engine {
         EngineKind::Rust => Box::new(RustMinifier),
@@ -55,16 +66,17 @@ pub fn minifier_for_language(
             };
             Box::new(CssMinifier { dialect })
         }
-        EngineKind::Json => Box::new(JsonMinifier { profile: &JSON }),
+        EngineKind::Json => {
+            Box::new(JsonMinifier { profile: &JSON })
+        }
         EngineKind::CStyle => {
-            let profile = profile::profile_for(language.id).ok_or_else(
-                || {
+            let profile = profile::profile_for(language.id)
+                .ok_or_else(|| {
                     anyhow::anyhow!(
                         "No C-like profile for language: {}",
                         language.id
                     )
-                },
-            )?;
+                })?;
             Box::new(CLikeMinifier { profile })
         }
         EngineKind::Sql => Box::new(SqlMinifier),

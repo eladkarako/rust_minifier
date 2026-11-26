@@ -3,18 +3,24 @@
 use super::*;
 use std::path::Path;
 
-fn minify_path(path: &str, source: &str) -> String {
+fn minify_path(
+    path: &str,
+    source: &str,
+) -> String {
     minify_with_options(
         source,
         Path::new(path),
         &MinifierOptions::default(),
     )
-    .unwrap()
+        .unwrap()
 }
 
 #[test]
 fn dispatches_rust() {
-    assert_eq!(minify_path("main.rs", "fn main() { }"), "fn main(){}");
+    assert_eq!(
+        minify_path("main.rs", "fn main() { }"),
+        "fn main(){}"
+    );
 }
 
 #[test]
@@ -64,10 +70,7 @@ fn dispatches_json() {
 
 #[test]
 fn dispatches_sql() {
-    assert_eq!(
-        minify_path("schema.sql", "SELECT  1;"),
-        "SELECT 1;"
-    );
+    assert_eq!(minify_path("schema.sql", "SELECT  1;"), "SELECT 1;");
 }
 
 #[test]
