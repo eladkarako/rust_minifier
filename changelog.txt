@@ -1,4 +1,5 @@
 26.11.24
++ grouped `--list-types` output by category and removed duplicate file names from the listing. [commit 5183c9d]
 + added 8 end-to-end CLI tests (`tests/cli.rs`) covering `--list-types`, forced types for stdin, line-break preservation, suffixed file output, per-language concat comments and skipped unknown extensions. [commit a9206a5]
 + added CLI overrides: `-t/--type <LANGUAGE>` forces a language (including for stdin), `--preserve-line-breaks` keeps newlines where the engine supports it, `--no-include-file-path` suppresses path comments, and `--list-types` prints every supported and excluded type. [commit e1d8926]
 + fixed the markup tokenizer so removing a comment between two text nodes no longer introduces a spurious space (`a<!-- c -->b` becomes `ab`). Added regression tests. [commit 9f4f0b1]
