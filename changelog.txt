@@ -1,4 +1,5 @@
 26.11.24
++ updated the package description and README help header to describe the expanded format support. [commit 9de3f47]
 + rewrote `README.md` with the new `--help`, a supported-type overview grouped by category, the full `--list-types` output, an excluded-type table, language override examples and new use cases. [commit b18f7a0]
 + grouped `--list-types` output by category and removed duplicate file names from the listing. [commit 5183c9d]
 + added 8 end-to-end CLI tests (`tests/cli.rs`) covering `--list-types`, forced types for stdin, line-break preservation, suffixed file output, per-language concat comments and skipped unknown extensions. [commit a9206a5]

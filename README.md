@@ -63,8 +63,8 @@ formats such as YAML, shell scripts and Makefiles always keep their lines.
 ### `--help`
 
 ```text
-whitespace-based rust-code minification, with comment and rustdoc removing. and TOML minification,
-parallel processing.
+comment and whitespace minifier for Rust, web, Android, JVM, data, build and scripting text files;
+fast parallel CLI.
 
 Usage: rust_minifier.exe [OPTIONS] [FILES]...
 
