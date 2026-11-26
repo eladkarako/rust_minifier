@@ -1,6 +1,7 @@
 use crate::args::Args;
 use crate::metadata::{apply_metadata, capture_metadata};
 use crate::minifier;
+use crate::minifier::language::{self, Language};
 use alphanumeric_sort::compare_str;
 use anyhow::Result;
 use chrono::Local;
@@ -14,25 +15,9 @@ use tokio::sync::Mutex;
 #[derive(Clone)]
 struct ProcessedFile {
     file_path: String,
-    file_type: FileType,
+    language: &'static Language,
     minified_content: String,
     // include_file_path is already applied to minified_content, no need to store it
-}
-
-#[derive(Clone, Copy, Eq, PartialEq, Ord, PartialOrd, Debug)]
-enum FileType {
-    Toml,
-    Rust,
-}
-
-impl FileType {
-    fn from_path(path: &str) -> Self {
-        if path.ends_with(".toml") {
-            FileType::Toml
-        } else {
-            FileType::Rust
-        }
-    }
 }
 
 fn should_exclude_file(
@@ -130,7 +115,7 @@ pub async fn process_all(args: &Args) -> Result<()> {
     }
 
     if expanded_files.is_empty() {
-        eprintln!("No .rs or .toml files found.");
+        eprintln!("No supported files found.");
         return Ok(());
     }
 
@@ -205,25 +190,23 @@ pub async fn process_all(args: &Args) -> Result<()> {
 
         // Create sorted copy to show order
         let mut sorted = processed_files.clone();
-        sorted.sort_by(|a, b| match a.file_type.cmp(&b.file_type) {
-            std::cmp::Ordering::Equal => {
-                alphanumeric_sort::compare_str(
-                    &a.file_path,
-                    &b.file_path,
-                )
+        sorted.sort_by(|a, b| {
+            match a.language.category.cmp(&b.language.category) {
+                std::cmp::Ordering::Equal => {
+                    alphanumeric_sort::compare_str(
+                        &a.file_path,
+                        &b.file_path,
+                    )
+                }
+                other => other,
             }
-            other => other,
         });
 
         for (i, pf) in sorted.iter().enumerate() {
-            let file_type_str = match pf.file_type {
-                FileType::Toml => "TOML",
-                FileType::Rust => "Rust",
-            };
             eprintln!(
                 "  [{}] ({}) {}",
                 i + 1,
-                file_type_str,
+                pf.language.display_name,
                 pf.file_path
             );
         }
@@ -251,13 +234,15 @@ fn sort_and_write_concatenated(
 ) -> Result<()> {
     let mut sorted = files.to_vec();
 
-    // Sort: first by file type (Toml before Rust),
-    // then by file path using natural/alphanumeric ordering (UTF-8 aware)
-    sorted.sort_by(|a, b| match a.file_type.cmp(&b.file_type) {
-        std::cmp::Ordering::Equal => {
-            compare_str(&a.file_path, &b.file_path)
+    // Sort: first by language category, then by file path using
+    // natural/alphanumeric ordering (UTF-8 aware).
+    sorted.sort_by(|a, b| {
+        match a.language.category.cmp(&b.language.category) {
+            std::cmp::Ordering::Equal => {
+                compare_str(&a.file_path, &b.file_path)
+            }
+            other => other,
         }
-        other => other,
     });
 
     let file = fs::File::create(dest)?;
@@ -280,12 +265,7 @@ fn expand_path(
     if p.is_dir() {
         walk_directory(p, expanded, exclude_patterns)?;
     } else if p.is_file() {
-        let ext = p
-            .extension()
-            .and_then(|s| s.to_str())
-            .unwrap_or("")
-            .to_lowercase();
-        if (ext == "rs" || ext == "toml")
+        if language::detect_language(p).is_some()
             && !should_exclude_file(path, exclude_patterns)
         {
             expanded.push(path.to_string());
@@ -299,7 +279,7 @@ fn expand_path(
     Ok(())
 }
 
-/// Recursively walk directory for .rs and .toml files
+/// Recursively walk a directory for supported text files.
 fn walk_directory(
     dir: &Path,
     expanded: &mut Vec<String>,
@@ -311,47 +291,45 @@ fn walk_directory(
         if path.is_dir() {
             walk_directory(&path, expanded, exclude_patterns)?;
         } else if path.is_file() {
-            let ext = path
-                .extension()
-                .and_then(|s| s.to_str())
-                .unwrap_or("")
-                .to_lowercase();
             let path_str = path.to_string_lossy().to_string();
-            if (ext == "rs" || ext == "toml")
+            if language::detect_language(&path).is_some()
                 && !should_exclude_file(&path_str, exclude_patterns)
             {
-                expanded.push(path.to_string_lossy().to_string());
+                expanded.push(path_str);
             }
         }
     }
     Ok(())
 }
 
-/// Determine output file extension based on file types
+/// Determine output file extension based on the languages in the file list.
 fn determine_output_extension(files: &[String]) -> String {
-    let mut has_rs = false;
-    let mut has_toml = false;
+    let mut languages: Vec<&'static Language> = Vec::new();
     for file in files {
-        let p = Path::new(file);
-        let ext = p
-            .extension()
-            .and_then(|s| s.to_str())
-            .unwrap_or("")
-            .to_lowercase();
-        if ext == "rs" {
-            has_rs = true;
-        } else if ext == "toml" {
-            has_toml = true;
+        if let Some(language) =
+            language::detect_language(Path::new(file))
+        {
+            if !languages
+                .iter()
+                .any(|known| known.id == language.id)
+            {
+                languages.push(language);
+            }
         }
     }
-    if has_rs && has_toml {
-        "._rs_and_toml.txt".to_string()
-    } else if has_rs {
-        ".rs".to_string()
-    } else if has_toml {
-        ".toml".to_string()
-    } else {
-        ".txt".to_string()
+
+    match languages.as_slice() {
+        [] => ".txt".to_string(),
+        [only] => format!(
+            ".{}",
+            only.extensions.first().copied().unwrap_or("txt")
+        ),
+        [first, second] => format!(
+            "._{}_and_{}.txt",
+            first.extensions.first().copied().unwrap_or(first.id),
+            second.extensions.first().copied().unwrap_or(second.id)
+        ),
+        _ => "._mixed.txt".to_string(),
     }
 }
 
@@ -434,19 +412,33 @@ async fn process_single_file<W: io::Write + Send + 'static>(
 
     let source = String::from_utf8(buffer)?;
     let meta = capture_metadata(path)?;
-    let minified = minifier::minify(&source, path)?;
+
+    // Ambiguous extensions (for example MATLAB vs Objective-C `.m`) are
+    // resolved from the contents. When the contents do not match any
+    // supported language the file is skipped.
+    let Some(language) = minifier::detect_language(path, &source)
+    else {
+        return Ok(None);
+    };
+
+    let minified = minifier::minify_with_language(
+        &source,
+        language,
+        &minifier::MinifierOptions::default(),
+    )?;
 
     let output = if include_file_path {
         let full_path = std::fs::canonicalize(path)?
             .to_string_lossy()
             .to_string();
         let formatted_path = format_path_for_output(&full_path);
-        let comment_char =
-            if file_path.ends_with(".toml") { "#" } else { "//" };
-        format!(
-            "{} {}{}{}{}",
-            comment_char, formatted_path, EOL, minified, SEPARATOR
-        )
+        match language.comment.render(&formatted_path) {
+            Some(comment) => format!(
+                "{}{}{}{}",
+                comment, EOL, minified, SEPARATOR
+            ),
+            None => format!("{}{}", minified, SEPARATOR),
+        }
     } else {
         minified
     };
@@ -455,7 +447,7 @@ async fn process_single_file<W: io::Write + Send + 'static>(
     if let Some(_concat_path) = concat_to_path {
         return Ok(Some(ProcessedFile {
             file_path: file_path.to_string(),
-            file_type: FileType::from_path(file_path),
+            language,
             minified_content: output,
         }));
     }

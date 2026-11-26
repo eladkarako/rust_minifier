@@ -4,33 +4,37 @@ use super::*;
 use std::fs;
 use temp_dir::TempDir;
 
-/// Test that TOML file type sorts before Rust file type.
+/// Test that language categories give a deterministic sort order.
 #[test]
-fn test_file_type_ordering() {
-    let toml_type = FileType::Toml;
-    let rust_type = FileType::Rust;
-    assert!(toml_type < rust_type);
+fn test_language_category_ordering() {
+    let rust = language::find_language("rust").unwrap();
+    let toml = language::find_language("toml").unwrap();
+    // Rust files are written before config files in concatenated output.
+    assert!(rust.category < toml.category);
 }
 
-/// Test FileType detection from .toml extension.
+/// Test language detection for a TOML path.
 #[test]
-fn test_file_type_from_path_toml() {
-    let file_type = FileType::from_path("config.toml");
-    assert_eq!(file_type, FileType::Toml);
+fn test_detect_language_toml() {
+    let language =
+        language::detect_language(Path::new("config.toml")).unwrap();
+    assert_eq!(language.id, "toml");
 }
 
-/// Test FileType detection from .rs extension.
+/// Test language detection for a Rust path.
 #[test]
-fn test_file_type_from_path_rust() {
-    let file_type = FileType::from_path("main.rs");
-    assert_eq!(file_type, FileType::Rust);
+fn test_detect_language_rust() {
+    let language =
+        language::detect_language(Path::new("main.rs")).unwrap();
+    assert_eq!(language.id, "rust");
 }
 
-/// Test FileType detection defaults to Rust for unknown extensions.
+/// Test that unknown extensions are not detected.
 #[test]
-fn test_file_type_from_path_unknown() {
-    let file_type = FileType::from_path("data.json");
-    assert_eq!(file_type, FileType::Rust);
+fn test_detect_language_unknown() {
+    assert!(
+        language::detect_language(Path::new("image.png")).is_none()
+    );
 }
 
 /// Test expanding a single .rs file.
@@ -61,6 +65,35 @@ fn test_expand_path_single_toml_file() {
 
     assert_eq!(expanded.len(), 1);
     assert!(expanded[0].ends_with(".toml"));
+}
+
+/// Test expanding a single .html file.
+#[test]
+fn test_expand_path_single_html_file() {
+    let temp_dir = TempDir::new().unwrap();
+    let test_file = temp_dir.path().join("index.html");
+    fs::write(&test_file, "<p>hi</p>").unwrap();
+
+    let mut expanded = Vec::new();
+    expand_path(test_file.to_str().unwrap(), &mut expanded, &[])
+        .unwrap();
+
+    assert_eq!(expanded.len(), 1);
+    assert!(expanded[0].ends_with(".html"));
+}
+
+/// Test that unsupported binary-looking files are ignored.
+#[test]
+fn test_expand_path_ignores_unsupported_file() {
+    let temp_dir = TempDir::new().unwrap();
+    let test_file = temp_dir.path().join("image.png");
+    fs::write(&test_file, [0u8, 1, 2, 3]).unwrap();
+
+    let mut expanded = Vec::new();
+    expand_path(test_file.to_str().unwrap(), &mut expanded, &[])
+        .unwrap();
+
+    assert!(expanded.is_empty());
 }
 
 /// Test expanding a nonexistent file returns error.
@@ -197,6 +230,35 @@ fn test_determine_output_extension_empty() {
     assert_eq!(ext, ".txt");
 }
 
+/// Test determine_output_extension for a single web language.
+#[test]
+fn test_determine_output_extension_html_only() {
+    let files = vec!["index.html".to_string()];
+    let ext = determine_output_extension(&files);
+    assert_eq!(ext, ".html");
+}
+
+/// Test determine_output_extension for two different languages.
+#[test]
+fn test_determine_output_extension_two_languages() {
+    let files =
+        vec!["index.html".to_string(), "style.css".to_string()];
+    let ext = determine_output_extension(&files);
+    assert_eq!(ext, "._html_and_css.txt");
+}
+
+/// Test determine_output_extension for more than two languages.
+#[test]
+fn test_determine_output_extension_many_languages() {
+    let files = vec![
+        "index.html".to_string(),
+        "style.css".to_string(),
+        "app.js".to_string(),
+    ];
+    let ext = determine_output_extension(&files);
+    assert_eq!(ext, "._mixed.txt");
+}
+
 /// Test format_path_for_output removes Windows UNC prefix.
 #[test]
 fn test_format_path_for_output_windows_prefix() {
@@ -275,12 +337,12 @@ fn test_prepare_concat_destination_trailing_slash() {
 fn test_processed_file_clone() {
     let pf = ProcessedFile {
         file_path: "main.rs".to_string(),
-        file_type: FileType::Rust,
+        language: language::find_language("rust").unwrap(),
         minified_content: "fn main(){}".to_string(),
     };
 
     let cloned = pf.clone();
     assert_eq!(pf.file_path, cloned.file_path);
-    assert_eq!(pf.file_type, cloned.file_type);
+    assert_eq!(pf.language.id, cloned.language.id);
     assert_eq!(pf.minified_content, cloned.minified_content);
 }
