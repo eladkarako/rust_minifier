@@ -15,6 +15,18 @@ fn removes_html_comments() {
 }
 
 #[test]
+fn removing_comment_between_text_does_not_add_space() {
+    assert_eq!(
+        minify("<div>a<!-- hidden -->b</div>"),
+        "<div>ab</div>"
+    );
+    assert_eq!(
+        minify("<div>a <!-- hidden --> b</div>"),
+        "<div>a b</div>"
+    );
+}
+
+#[test]
 fn collapses_text_whitespace() {
     assert_eq!(
         minify("<p>hello   world</p>"),

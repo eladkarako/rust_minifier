@@ -679,11 +679,18 @@ pub fn minify_markup(
         if let Some((action, next_position)) =
             match_template_or_comment(&chars, position)
         {
-            if !text.is_empty() {
-                tokens.push(Token::Text(std::mem::take(&mut text)));
-            }
-            if let TemplateAction::Template(region) = action {
-                tokens.push(Token::Opaque(region));
+            match action {
+                // Dropped comments must not split the surrounding text,
+                // otherwise the gap would be mistaken for meaningful space.
+                TemplateAction::Comment => {}
+                TemplateAction::Template(region) => {
+                    if !text.is_empty() {
+                        tokens.push(Token::Text(std::mem::take(
+                            &mut text,
+                        )));
+                    }
+                    tokens.push(Token::Opaque(region));
+                }
             }
             position = next_position;
             continue;
