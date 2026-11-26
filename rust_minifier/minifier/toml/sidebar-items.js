@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["normalize_spacing","remove_inline_comments"],"struct":["TomlMinifier"]};

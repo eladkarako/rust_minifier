@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["CssDialect","TokenKind"],"fn":["colon_is_declaration","consume_string","consume_url","dangerous_pair","is_function_name","is_word_character","minify_css","needs_space","reconstruct","starts_with_ignore_case","starts_word","tokenize"],"struct":["CssMinifier","Token"]};

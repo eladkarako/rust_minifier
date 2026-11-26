@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["needs_space_between","reconstruct_minimal","remove_comments_and_rustdocs"],"struct":["RustMinifier"]};

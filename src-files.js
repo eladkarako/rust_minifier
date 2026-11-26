@@ -1,0 +1,2 @@
+createSrcSidebar('[["rust_minifier",["",[["args",[],["mod.rs"]],["metadata",[],["mod.rs"]],["minifier",[["c_like",[],["mod.rs","profile.rs"]],["css",[],["mod.rs"]],["graphql",[],["mod.rs"]],["json",[],["mod.rs"]],["line_based",[],["mod.rs","profile.rs"]],["markup",[],["mod.rs"]],["php",[],["mod.rs"]],["rust",[],["mod.rs"]],["sql",[],["mod.rs"]],["toml",[],["mod.rs"]]],["language.rs","mod.rs","options.rs"]],["processor",[],["mod.rs"]]],["main.rs"]]]]');
+//{"start":19,"fragment_lengths":[433]}

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["TokenKind"],"fn":["consume_dollar_quote","consume_quoted","is_word_character","minify_sql","needs_space","reconstruct","starts_with_at","tokenize"],"struct":["SqlMinifier","Token"]};

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["detect_language","get_minifier","minifier_for_language","minify","minify_with_language","minify_with_options"],"mod":["c_like","css","graphql","json","language","line_based","markup","options","php","rust","sql","toml"],"trait":["Minifier"]};

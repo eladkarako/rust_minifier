@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["PLACEHOLDER_CLOSE","PLACEHOLDER_OPEN"],"fn":["find_php_close","minify_php","php_open_tag","replace_placeholders","starts_with_at","starts_with_ci_at"],"struct":["PhpMinifier"]};

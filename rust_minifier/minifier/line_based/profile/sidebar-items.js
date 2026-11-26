@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["BASE"],"fn":["profile_for"],"static":["ASSEMBLY","AWK","BATCH","CMAKE","DOCKERFILE","FORTRAN","GITIGNORE","HASKELL","HCL","INI","JULIA","MAKEFILE","NIM","NIX","PERL","PO","POWERSHELL","PRISMA","PROGUARD","PROPERTIES","R","RUBY","SHELL","TCL","VIM","VISUAL_BASIC","WAT","YAML"],"struct":["LineProfile"]};

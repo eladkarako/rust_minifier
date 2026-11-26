@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["copy_string","minify_json","next_significant_character","skip_block_comment","skip_line_comment"],"static":["JSON","JSON5","JSONC"],"struct":["JsonMinifier","JsonProfile"]};

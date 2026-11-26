@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["Category","CommentStyle","EngineKind"],"fn":["detect_language","detect_language_from_source","find_language","language","match_by_file_name","path_extension","path_file_name","supported_extension_summary","type_listing"],"static":["EXCLUDED_TYPES","LANGUAGES"],"struct":["ExcludedType","Language"]};

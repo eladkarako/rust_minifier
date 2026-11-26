@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["EOL","SEPARATOR"],"fn":["determine_output_extension","expand_path","format_path_for_output","get_deduplicated_path","parse_soft_split","prepare_concat_destination","process_all","process_single_file","process_stdin","should_exclude_file","soft_split_content","sort_and_write_concatenated","walk_directory"],"struct":["ProcessedFile"]};

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["TokenKind"],"fn":["consume_string","is_word_character","is_word_like","minify_graphql","needs_space","reconstruct","tokenize"],"struct":["GraphQlMinifier","Token"]};
