@@ -351,6 +351,9 @@ These are detected but intentionally not minified. The program skips them and
 - bundle an entire small web app (HTML, CSS, JS, JSON, SVG) into a single file for inspection or embedding.
 - strip comments from Android resources and Gradle files before packaging or review.
 
+### Documentation
+you can see the source, program components and notes using this rust-doc generated website: https://eladkarako.github.io/rust_minifier/rust_minifier/index.html
+
 <hr/>
 
 this is a free and open-source program that works across all OS,  
