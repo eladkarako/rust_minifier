@@ -1616,13 +1616,17 @@ pub fn detect_language_from_source(
 /// Render the complete supported/excluded type listing for `--list-types`.
 pub fn type_listing() -> String {
     fn extensions_of(language: &Language) -> String {
-        let mut parts: Vec<String> = language
-            .extensions
-            .iter()
-            .map(|extension| format!(".{}", extension))
-            .collect();
+        let mut parts: Vec<String> = Vec::new();
+        let mut push = |value: String| {
+            if !parts.contains(&value) {
+                parts.push(value);
+            }
+        };
+        for extension in language.extensions {
+            push(format!(".{}", extension));
+        }
         for filename in language.filenames {
-            parts.push((*filename).to_string());
+            push((*filename).to_string());
         }
         if parts.is_empty() {
             "-".to_string()
@@ -1631,18 +1635,45 @@ pub fn type_listing() -> String {
         }
     }
 
+    let categories = [
+        Category::Rust,
+        Category::Web,
+        Category::Android,
+        Category::Jvm,
+        Category::Systems,
+        Category::Scripting,
+        Category::Data,
+        Category::Config,
+        Category::Build,
+        Category::Markup,
+        Category::Stylesheet,
+        Category::Query,
+        Category::Shader,
+        Category::Other,
+    ];
+
     let mut output = String::new();
     output.push_str(&format!(
         "Supported types ({}):\n",
         LANGUAGES.len()
     ));
-    for language in LANGUAGES {
-        output.push_str(&format!(
-            "  {:<16} {:<28} {}\n",
-            language.id,
-            language.display_name,
-            extensions_of(language)
-        ));
+    for category in categories {
+        let group: Vec<&Language> = LANGUAGES
+            .iter()
+            .filter(|language| language.category == category)
+            .collect();
+        if group.is_empty() {
+            continue;
+        }
+        output.push_str(&format!("\n[{}]\n", category.name()));
+        for language in group {
+            output.push_str(&format!(
+                "  {:<16} {:<28} {}\n",
+                language.id,
+                language.display_name,
+                extensions_of(language)
+            ));
+        }
     }
 
     output.push_str(&format!(
