@@ -1,4 +1,5 @@
 26.11.24
++ fixed the markup tokenizer so removing a comment between two text nodes no longer introduces a spurious space (`a<!-- c -->b` becomes `ab`). Added regression tests. [commit 9f4f0b1]
 + processor now discovers and orders files through the language registry. Directory walks pick up every supported text type, unsupported files are skipped, ambiguous extensions are resolved from content, concatenated output is grouped by language category, and each file uses its language's comment syntax for the embedded path. Added processor tests. [commit 3edb73f]
 + wired the language registry into the public dispatcher (`src/minifier/mod.rs`). `get_minifier`, `minify` and `minify_with_options` now select an engine for every registered language, and `minify_with_language` accepts an already detected language. Added 17 dispatch tests. [commit ea3a3f1]
 + added a PHP mixed minifier (`src/minifier/php/`) that minifies HTML around and code inside `<?php ?>`/`<?= ?>` blocks, keeps whitespace around inline blocks, and protects `?>` inside strings. PHP 8 `#[...]` attributes are preserved. Added 15 unit tests. [commit 778ae38]
